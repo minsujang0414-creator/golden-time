@@ -1,0 +1,2530 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>골든타임 지킴이 코드 보관소</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* 골든타임 지킴이 웹 앱과 같은 병원 홈페이지 톤(흰 바탕 + 딥 틸 + 금색). 헤더 → 어두운 히어로 → 분야 카드 4장 → 흐름 → 분야별 코드 → 푸터 */
+:root {
+  color-scheme: light;
+  --teal: #1a505e;
+  --teal-deep: #0e2f38;
+  --teal-soft: #e7f0f1;
+  --gold: #e0a93b;
+  --gold-ink: #9a6b0f;
+  --paper: #ffffff;
+  --gray: #f4f6f7;
+  --ink: #111111;
+  --ink-2: #555f66;
+  --ink-3: #8b969d;
+  --rule: #e2e7ea;
+  --alarm: #d0312d;
+  --code-bg: #0e2129;
+  --code-ink: #d9e7eb;
+  --body: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.7 var(--body); letter-spacing: -0.01em; -webkit-font-smoothing: antialiased; }
+.inner { max-width: 1180px; margin: 0 auto; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: #fff; }
+
+/* 헤더 */
+.gnb { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgba(255,255,255,.97); border-bottom: 1px solid var(--rule); }
+.gnb .inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 72px; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; color: var(--teal); text-decoration: none; letter-spacing: -0.03em; white-space: nowrap; }
+.logo svg { width: 30px; height: 30px; flex: none; }
+.logo small { font-size: 13px; font-weight: 700; color: var(--ink-3); letter-spacing: 0; }
+.menu { display: flex; gap: 36px; font-weight: 700; font-size: 15px; }
+.menu a { color: var(--ink); text-decoration: none; }
+.menu a:hover { color: var(--teal); }
+.call { display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--teal); color: var(--teal); border-radius: 999px; padding: 7px 16px; font-weight: 700; font-size: 14px; white-space: nowrap; }
+.call b { color: var(--alarm); }
+@media (max-width: 960px) { .menu { display: none; } }
+@media (max-width: 520px) { .call { display: none; } }
+
+/* 히어로 */
+.hero { position: relative; background: var(--teal-deep); color: #fff; overflow: hidden; }
+.hero::before { content: ""; position: absolute; inset: 0; background: radial-gradient(900px 460px at 80% 30%, rgba(26,80,94,.9), transparent 70%); }
+.hero svg.ecg { position: absolute; left: 0; right: 0; bottom: 30px; width: 100%; height: 110px; opacity: .13; }
+.hero .inner { position: relative; padding-top: 88px; padding-bottom: 96px; display: grid; gap: 18px; }
+.hero .en { font-weight: 700; font-size: 14px; letter-spacing: .22em; color: var(--gold); text-transform: uppercase; }
+.hero h1 { margin: 0; font-size: clamp(34px, 5vw, 58px); line-height: 1.22; font-weight: 800; letter-spacing: -0.035em; text-wrap: balance; }
+.hero h1 em { font-style: normal; color: var(--gold); }
+.hero p { margin: 0; font-size: 18px; line-height: 1.75; color: rgba(255,255,255,.78); max-width: 40em; }
+.stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.stat { border: 1px solid rgba(255,255,255,.3); border-radius: 999px; padding: 7px 16px; font-size: 14px; color: rgba(255,255,255,.85); }
+.stat b { color: #fff; font-family: var(--mono); font-weight: 600; }
+.pillbar { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); width: min(980px, calc(100% - 48px)); background: #fff; color: var(--ink); border-radius: 999px; padding: 17px 28px; display: flex; align-items: center; gap: 14px; box-shadow: 0 18px 40px rgba(0,0,0,.18); font-size: 15px; }
+.pillbar svg { flex: none; width: 22px; height: 22px; color: var(--teal); }
+.pillbar strong { color: var(--teal); white-space: nowrap; }
+.pillbar span { color: var(--ink-2); min-width: 0; }
+
+/* 섹션 공통 */
+section.sec { padding: 96px 0; scroll-margin-top: 72px; }
+section.sec.gray { background: var(--gray); }
+.sec-head { text-align: center; margin-bottom: 48px; }
+.sec-head .en { font-weight: 700; font-size: 14px; letter-spacing: .22em; color: var(--teal); text-transform: uppercase; }
+.sec-head h2 { margin: 12px 0 12px; font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.3; text-wrap: balance; }
+.sec-head p { margin: 0 auto; color: var(--ink-2); font-size: 17px; max-width: 42em; }
+
+/* 분야 카드 (F·A·S·T 카드와 같은 모양) */
+.areas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 900px) { .areas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .areas { grid-template-columns: minmax(0, 1fr); } }
+.areas a { background: #fff; border: 1px solid var(--rule); border-radius: 20px; padding: 28px 26px; display: grid; gap: 8px; align-content: start; text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }
+.areas a:hover { border-color: var(--teal); transform: translateY(-2px); }
+.areas .letter { font-size: 50px; font-weight: 900; line-height: 1; color: var(--teal); letter-spacing: -0.04em; }
+.areas a:nth-child(2) .letter { color: var(--gold); }
+.areas h3 { margin: 4px 0 0; font-size: 19px; font-weight: 800; }
+.areas p { margin: 0; color: var(--ink-2); font-size: 14px; }
+.areas .how { font-size: 13px; font-weight: 700; color: var(--teal); border-top: 1px solid var(--rule); padding-top: 10px; margin-top: 6px; font-family: var(--mono); }
+
+/* 흐름 */
+.flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; counter-reset: f; }
+@media (max-width: 860px) { .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.flow div { background: #fff; border: 1px solid var(--rule); border-radius: 18px; padding: 22px; counter-increment: f; }
+.flow div::before { content: "STEP 0" counter(f); display: block; font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--teal); margin-bottom: 4px; }
+.flow b { display: block; font-size: 17px; font-weight: 800; }
+.flow small { color: var(--ink-2); font-size: 14px; }
+.tables { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; margin-top: 18px; }
+@media (max-width: 860px) { .tables { grid-template-columns: minmax(0, 1fr); } }
+.card { background: #fff; border: 1px solid var(--rule); border-radius: 20px; padding: 24px 26px; min-width: 0; }
+.card h3 { margin: 0 0 8px; font-size: 18px; font-weight: 800; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 10px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th { font-size: 13px; font-weight: 700; color: var(--ink-3); border-bottom: 2px solid var(--ink); }
+td code, li code, p code { font: 13px var(--mono); background: var(--gray); border-radius: 5px; padding: 1px 5px; color: var(--teal); }
+
+/* 파일 카드 */
+.files { display: grid; gap: 18px; }
+.file { background: #fff; border: 1px solid var(--rule); border-radius: 20px; padding: 26px 28px; display: grid; gap: 14px; min-width: 0; }
+.fhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; }
+.fname { font: 600 18px var(--mono); color: var(--ink); }
+.chip { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 700; color: var(--teal); background: var(--teal-soft); padding: 4px 12px; border-radius: 999px; }
+.chip b { font-family: var(--mono); font-weight: 600; }
+.role { margin: 0; color: var(--ink-2); font-size: 16px; }
+.funcs { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px 22px; }
+.funcs li { font-size: 14px; color: var(--ink-2); }
+details.code summary { cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: #fff; background: var(--teal); border-radius: 999px; padding: 9px 20px; list-style: none; }
+details.code summary:hover { background: var(--teal-deep); }
+details.code summary::-webkit-details-marker { display: none; }
+details.code summary::after { content: "▾"; font-size: 12px; transition: transform .15s; }
+details.code[open] summary::after { transform: rotate(180deg); }
+.codebar { display: flex; justify-content: flex-end; margin: 12px 0 8px; }
+.copy { appearance: none; font: 700 13px var(--body); background: #fff; color: var(--teal); border: 1.5px solid var(--teal); border-radius: 999px; padding: 5px 14px; cursor: pointer; }
+.copy:hover { background: var(--teal); color: #fff; }
+pre { margin: 0; background: var(--code-bg); color: var(--code-ink); border-radius: 14px; padding: 18px 20px; overflow: auto; max-height: 560px; font: 12.5px/1.6 var(--mono); tab-size: 4; }
+
+/* 푸터 */
+footer { background: var(--teal-deep); color: rgba(255,255,255,.72); padding: 60px 0 70px; font-size: 14px; }
+footer .inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 30px; align-items: end; }
+@media (max-width: 800px) { footer .inner { grid-template-columns: minmax(0, 1fr); } }
+footer .logo { color: #fff; margin-bottom: 12px; }
+footer p { margin: 0; max-width: 50em; }
+.num { color: rgba(255,255,255,.7); font-size: 14px; }
+.num strong { display: block; font-size: 38px; font-weight: 800; color: #fff; letter-spacing: -0.03em; line-height: 1.2; }
+.nums { display: flex; gap: 36px; }
+@media (min-width: 801px) { .nums { margin-right: 110px; } }
+.quick { position: fixed; right: max(24px, env(safe-area-inset-right, 0px)); bottom: max(24px, env(safe-area-inset-bottom, 0px)); z-index: 30; width: 84px; height: 84px; border-radius: 18px; background: var(--teal); color: #fff; display: grid; place-items: center; align-content: center; gap: 2px; font: 700 13px var(--body); text-decoration: none; box-shadow: 0 14px 30px rgba(14,47,56,.3); }
+.quick:hover { background: var(--teal-deep); }
+.quick svg { width: 24px; height: 24px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+
+<header class="gnb">
+  <div class="inner">
+    <a class="logo" href="#top">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="#1a505e" stroke-width="3"/><path d="M16 16 L16 6" stroke="#e0a93b" stroke-width="3" stroke-linecap="round"/><path d="M16 16 L23 20" stroke="#1a505e" stroke-width="3" stroke-linecap="round"/></svg>
+      골든타임 지킴이 <small>코드 보관소</small>
+    </a>
+    <nav class="menu" aria-label="분야 바로가기"><a href="#flow">전체 흐름</a><a href="#microbit">마이크로비트</a><a href="#webapp">웹 앱</a><a href="#python">파이썬</a><a href="#run">실행 파일</a><a href="app/">웹 앱 실행</a></nav>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <svg class="ecg" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true"><polyline fill="none" stroke="#fff" stroke-width="2" points="0,60 300,60 330,60 345,20 360,100 375,10 392,60 600,60 900,60 930,60 945,20 960,100 975,10 992,60 1200,60"/></svg>
+  <div class="inner">
+    <div class="en">Code Archive</div>
+    <h1>골든타임을 지키는<br><em>코드</em>를 모두 공개합니다</h1>
+    <p>매일 1분 체크로 뇌졸중 신호를 찾고 '마지막 정상 시각'을 기록하는 장치의 전체 코드입니다. 마이크로비트, 웹 앱, 파이썬 백업 앱, 실행 파일로 나눠 정리했습니다.</p>
+    <div class="stats"><span class="stat">파일 <b>7</b>개</span><span class="stat">전체 <b>2,242</b>줄</span><span class="stat">언어 <b>4</b>종</span></div>
+  </div>
+</section>
+
+<section class="sec" id="areas">
+  <div class="inner">
+    <div class="sec-head">
+      <div class="en">Code Map</div>
+      <h2>네 분야로 나눠 정리했어요</h2>
+      <p>카드를 누르면 해당 분야의 코드로 이동합니다.</p>
+    </div>
+    <div class="areas"><a href="#microbit"><div class="letter">M</div><h3>마이크로비트</h3><p>손 기기 2대가 기울기와 버튼을 재고, 수신기가 노트북과 이어 줍니다.</p><div class="how">2개 파일 · 95줄</div></a><a href="#webapp"><div class="letter">W</div><h3>웹 앱</h3><p>연결, 4단계 체크, 판정, 골든타임 다이얼, 기록까지 한 파일에서 처리합니다.</p><div class="how">1개 파일 · 1,008줄</div></a><a href="#python"><div class="letter">P</div><h3>파이썬 백업 앱</h3><p>웹 앱을 쓸 수 없을 때를 대비한 백업 프로그램과 얼굴·말 판단 모듈입니다.</p><div class="how">2개 파일 · 1,117줄</div></a><a href="#run"><div class="letter">R</div><h3>실행 파일</h3><p>웹서버를 켜고 크롬을 열거나, 파이썬 앱을 준비해 실행합니다.</p><div class="how">2개 파일 · 22줄</div></a></div>
+  </div>
+</section>
+
+<section class="sec gray" id="flow">
+  <div class="inner">
+    <div class="sec-head">
+      <div class="en">How It Works</div>
+      <h2>신호는 이렇게 흘러갑니다</h2>
+      <p>손에 쥔 기기가 잰 값이 라디오와 USB를 거쳐 웹 앱에서 판정되고, 경보와 기록으로 이어집니다.</p>
+    </div>
+    <div class="flow">
+      <div><b>손 마이크로비트 L·R</b><small>가속도로 팔 기울기, 버튼으로 두드리기 측정</small></div>
+      <div><b>수신 마이크로비트</b><small>라디오 그룹 23 ↔ USB 시리얼 115200 중계</small></div>
+      <div><b>웹 앱 (크롬)</b><small>카메라로 얼굴, 마이크로 말까지 확인해 판정</small></div>
+      <div><b>경보 · 기록</b><small>위험 경보, 마지막 정상 시각 저장</small></div>
+    </div>
+    <div class="tables">
+      <div class="card">
+        <h3>통신 메시지</h3>
+        <div class="scroll"><table>
+          <thead><tr><th>메시지</th><th>방향</th><th>뜻</th></tr></thead>
+          <tbody>
+            <tr><td><code>D,L|R,처짐,회전</code></td><td>손 → 노트북</td><td>측정 중 0.1초마다 기울기</td></tr>
+            <tr><td><code>T,L|R,횟수</code></td><td>손 → 노트북</td><td>두드리기 횟수 (왼손 B, 오른손 A)</td></tr>
+            <tr><td><code>DRIFT</code> <code>TAP_L</code> <code>TAP_R</code> <code>STOP</code></td><td>노트북 → 손</td><td>측정 시작·정지 (두 번씩 전송)</td></tr>
+            <tr><td><code>OK</code> <code>WARN</code> <code>ALARM</code></td><td>노트북 → 수신기</td><td>정상·재검·위험 아이콘과 경보음</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card">
+        <h3>판정 기준</h3>
+        <div class="scroll"><table>
+          <thead><tr><th>항목</th><th>이상으로 보는 기준</th></tr></thead>
+          <tbody>
+            <tr><td>팔 처짐</td><td>1~2초 기준 자세 대비 한쪽 10° 초과, 좌우 차이 8°, 회전 15° 초과</td></tr>
+            <tr><td>손가락</td><td>느린 손 ÷ 빠른 손 70% 미만</td></tr>
+            <tr><td>얼굴</td><td>좌우 입꼬리 상승 비율 55% 미만</td></tr>
+            <tr><td>말</td><td>자모 일치도 75% 미만</td></tr>
+            <tr><td><b>최종</b></td><td>0개 정상 · 1개 재검 · 2개 이상 또는 얼굴·말 이상이면 위험</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="microbit"><div class="inner"><div class="sec-head"><div class="en">Micro:bit</div><h2>마이크로비트</h2><p>MicroPython · micro:bit V2 3대에 올라가는 코드</p></div><div class="files"><article class="file">
+      <div class="fhead"><span class="fname">microbit_hand.py</span><span class="chip">MicroPython · <b>60</b>줄</span></div>
+      <p class="role">손에 쥐는 기기 2대(L/R). 팔 기울기를 0.1초마다, 두드리기 횟수를 누를 때마다 라디오로 보냅니다.</p>
+      <ul class="funcs"><li><code>angles()</code> 가속도 x·y·z로 처짐각(pitch)과 회전각(roll)을 atan2로 계산</li><li><code>TAP_BTN</code> 왼손은 B 버튼, 오른손은 A 버튼으로 두드리기 횟수를 셈</li><li><code>DRIFT / TAP / STOP</code> 수신기 명령에 따라 측정을 시작·정지</li></ul>
+      <details class="code" open><summary>전체 코드 보기</summary>
+        <div class="codebar"><button class="copy" data-target="code-microbit-0">복사</button></div>
+        <pre id="code-microbit-0"># 골든타임 지킴이 - 손에 쥐는 마이크로비트 (2대: 왼손용 / 오른손용)
+# python.microbit.org 에 붙여넣고 올리기
+# 오른손용으로 올릴 때는 아래 HAND = "L" 을 HAND = "R" 로 바꾸기
+#
+# 보내는 메시지
+#   D,손,처짐각,회전각   팔 처짐 검사 중 0.1초마다
+#   T,손,누른횟수        손가락 두드리기 검사 중 버튼(왼손 B, 오른손 A)을 누를 때마다
+from microbit import *
+import radio
+import math
+
+HAND = "L"
+RAD2DEG = 57.2958
+# 두드리기 버튼: 왼손은 B(화면 오른쪽 버튼, 왼손 엄지가 닿기 쉬움), 오른손은 A(화면 왼쪽 버튼)
+TAP_BTN = button_b if HAND == "L" else button_a
+
+radio.config(group=23, length=64, power=7)   # 받는 쪽과 그룹 번호가 같아야 함
+radio.on()
+display.show(HAND)
+
+mode = ""
+last_send = 0
+count = 0
+
+
+def angles():
+    # 중력 방향으로 기울기 계산: 화면을 위로 해서 평평하게 쥐면 둘 다 0도
+    x = accelerometer.get_x()
+    y = accelerometer.get_y()
+    z = accelerometer.get_z()
+    pitch = math.atan2(y, math.sqrt(x * x + z * z)) * RAD2DEG   # 앞뒤로 기울어짐 (팔 처짐)
+    roll = math.atan2(x, math.sqrt(y * y + z * z)) * RAD2DEG    # 좌우로 돌아감 (손바닥 회전)
+    return pitch, roll
+
+
+while True:
+    msg = radio.receive()
+    if msg == "DRIFT":
+        mode = "DRIFT"
+        display.show(Image.SQUARE)
+    elif msg == "TAP_" + HAND:
+        mode = "TAP"
+        count = 0
+        TAP_BTN.get_presses()           # 이전에 눌린 횟수 비우기
+        display.show(Image.TARGET)
+    elif msg == "STOP":
+        mode = ""
+        display.show(HAND)
+
+    if mode == "DRIFT" and running_time() - last_send &gt;= 100:
+        last_send = running_time()
+        p, r = angles()
+        radio.send("D," + HAND + "," + str(round(p, 1)) + "," + str(round(r, 1)))
+    elif mode == "TAP":
+        n = TAP_BTN.get_presses()
+        if n:
+            count += n
+            radio.send("T," + HAND + "," + str(count))
+            display.show(str(count % 10))
+    sleep(10)</pre></details>
+    </article><article class="file">
+      <div class="fhead"><span class="fname">microbit_receiver.py</span><span class="chip">MicroPython · <b>35</b>줄</span></div>
+      <p class="role">노트북에 꽂는 수신기. 라디오와 USB 시리얼을 중계하고 판정 결과를 아이콘·소리로 보여 줍니다.</p>
+      <ul class="funcs"><li><code>radio → print()</code> 손 기기 메시지를 노트북으로 전달</li><li><code>uart.read() → radio.send()</code> 노트북 명령을 손 기기로 전달</li><li><code>OK · WARN · ALARM</code> 체크, 물음표, X 아이콘과 경보음</li></ul>
+      <details class="code" open><summary>전체 코드 보기</summary>
+        <div class="codebar"><button class="copy" data-target="code-microbit-1">복사</button></div>
+        <pre id="code-microbit-1"># 골든타임 지킴이 - 노트북에 USB로 꽂는 수신용 마이크로비트 (1대)
+# 손 마이크로비트의 라디오 메시지 → 노트북(시리얼)으로 전달
+# 노트북 명령(DRIFT, TAP_L, TAP_R, STOP) → 라디오로 손 마이크로비트에 전달
+# 노트북 결과(OK, WARN, ALARM) → 화면 아이콘과 소리
+from microbit import *
+import radio
+import music
+
+radio.config(group=23, length=64, power=7)
+radio.on()
+display.show(Image.HEART)
+buf = ""
+
+while True:
+    msg = radio.receive()
+    if msg:
+        print(msg)
+
+    if uart.any():
+        data = uart.read()
+        if data:
+            buf += str(data, "utf-8")
+            while "\n" in buf:
+                line, buf = buf.split("\n", 1)
+                line = line.strip()
+                if line == "ALARM":
+                    display.show(Image.NO)
+                    music.play(["C6:2", "R:1"] * 6, wait=False)
+                elif line == "OK":
+                    display.show(Image.YES)
+                elif line == "WARN":
+                    display.show(Image.CONFUSED)
+                elif line:
+                    radio.send(line)
+    sleep(5)</pre></details>
+    </article></div></div></section>
+<section class="sec gray" id="webapp"><div class="inner"><div class="sec-head"><div class="en">Web App</div><h2>웹 앱</h2><p>HTML · CSS · JavaScript · 크롬에서 실행하는 메인 프로그램</p></div><div class="files"><article class="file">
+      <div class="fhead"><span class="fname">web/index.html</span><span class="chip">HTML · JavaScript · <b>1008</b>줄</span></div>
+      <p class="role">연결, 4단계 체크, 판정, 골든타임 다이얼, 기록과 CSV 저장을 모두 처리하는 메인 앱입니다.</p>
+      <ul class="funcs"><li><code>angleChange()</code> 처음 1초를 빼고 1~2초 평균 자세와 마지막 1초를 비교</li><li><code>judge()</code> 기본 기준 또는 개인 기준선으로 정상·재검·위험 판정</li><li><code>speechScore()</code> 문장을 자모로 나눠 유사도로 발음 정확도 계산</li><li><code>mouthHeights() · judgeFace()</code> 눈꼬리 선 기준 입꼬리 높이로 좌우 대칭 비교</li><li><code>connectSerial() · readLoop() · send()</code> Web Serial로 수신기 연결, 명령 두 번 전송</li><li><code>faceStep() · measureFace()</code> MediaPipe Face Landmarker로 얼굴 점 추적</li><li><code>speechStep() · listen() · openMic()</code> 맥북 마이크를 골라 크롬 음성 인식에 전달</li><li><code>renderDial()</code> 마지막 정상 시각부터 4.5시간 골든타임 다이얼</li></ul>
+      <details class="code"><summary>전체 코드 보기</summary>
+        <div class="codebar"><button class="copy" data-target="code-webapp-0">복사</button></div>
+        <pre id="code-webapp-0">&lt;!doctype html&gt;
+&lt;html lang="ko"&gt;
+&lt;head&gt;
+&lt;meta charset="utf-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+&lt;title&gt;골든타임 지킴이&lt;/title&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"&gt;
+&lt;link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;display=swap"&gt;
+&lt;style&gt;
+/* 병원 홈페이지 톤: 흰 바탕 + 딥 틸 + 큰 굵은 제목 + 영문 아이브로우. 위에서부터 히어로(골든타임 다이얼) → 1분 체크 → FAST → 기록 → 푸터 */
+:root {
+  color-scheme: light;
+  --teal: #1a505e;
+  --teal-deep: #0e2f38;
+  --teal-soft: #e7f0f1;
+  --gold: #e0a93b;
+  --gold-ink: #9a6b0f;
+  --paper: #ffffff;
+  --gray: #f4f6f7;
+  --surface: #ffffff;
+  --inset: #f4f6f7;
+  --ink: #111111;
+  --ink-2: #555f66;
+  --ink-3: #8b969d;
+  --rule: #e2e7ea;
+  --alarm: #d0312d;
+  --ok: #1f8a5b;
+  --warn: #c27400;
+  --left: #2f63d6;
+  --right: #e0662a;
+  --sky: #bcd6e6;
+  --ground: #c9a27a;
+  --body: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 16px/1.65 var(--body); letter-spacing: -0.01em; -webkit-font-smoothing: antialiased; }
+.inner { max-width: 1240px; margin: 0 auto; padding-left: max(24px, env(safe-area-inset-left)); padding-right: max(24px, env(safe-area-inset-right)); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* 헤더 */
+.gnb { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
+.gnb .inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 76px; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 21px; color: var(--teal); text-decoration: none; letter-spacing: -0.03em; }
+.logo svg { width: 30px; height: 30px; }
+.menu { display: flex; gap: 44px; font-weight: 600; font-size: 16px; }
+.menu a { color: var(--ink); text-decoration: none; }
+.menu a:hover { color: var(--teal); }
+.gnb-right { display: flex; align-items: center; gap: 10px; }
+.call { display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid var(--teal); color: var(--teal); border-radius: 999px; padding: 8px 18px; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.call b { color: var(--alarm); }
+@media (max-width: 980px) { .menu { display: none; } }
+
+/* 히어로 */
+.hero { position: relative; background: var(--teal-deep); color: #fff; overflow: hidden; }
+.hero::before { content: ""; position: absolute; inset: 0; background:
+  radial-gradient(1100px 520px at 78% 40%, rgba(26,80,94,.85), transparent 70%),
+  linear-gradient(180deg, rgba(14,47,56,0) 0%, rgba(8,28,34,.6) 100%); }
+.hero svg.ecg { position: absolute; left: 0; right: 0; bottom: 120px; width: 100%; height: 120px; opacity: .14; }
+.hero .inner { position: relative; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 40px; align-items: center; padding-top: 96px; padding-bottom: 140px; }
+@media (max-width: 900px) { .hero .inner { grid-template-columns: minmax(0, 1fr); padding-top: 56px; } }
+.hero .en { font-weight: 700; font-size: 14px; letter-spacing: .22em; color: var(--gold); text-transform: uppercase; }
+.hero h1 { margin: 18px 0 22px; font-size: clamp(36px, 5vw, 62px); line-height: 1.22; font-weight: 800; letter-spacing: -0.035em; }
+.hero h1 em { font-style: normal; color: var(--gold); }
+.hero p.lead { margin: 0; font-size: 19px; line-height: 1.75; color: rgba(255,255,255,.78); max-width: 34em; }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
+.dial-wrap { justify-self: center; width: min(400px, 100%); }
+.dial { width: 100%; aspect-ratio: 1; display: block; }
+.dial text { font-family: var(--mono); }
+.pillbar { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); width: min(1000px, calc(100% - 48px)); background: #fff; color: var(--ink); border-radius: 999px; padding: 18px 30px; display: flex; align-items: center; gap: 16px; box-shadow: 0 18px 40px rgba(0,0,0,.18); font-size: 16px; }
+.pillbar svg { flex: none; width: 22px; height: 22px; color: var(--teal); }
+.pillbar strong { color: var(--teal); }
+.pillbar span { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 버튼 */
+.btn { appearance: none; font: 700 15px var(--body); color: var(--ink); background: #fff; border: 1.5px solid var(--rule); border-radius: 999px; padding: 10px 20px; cursor: pointer; transition: .15s; letter-spacing: -0.01em; }
+.btn:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.teal { background: var(--teal); border-color: var(--teal); color: #fff; }
+.btn.teal:hover:not(:disabled) { background: var(--teal-deep); color: #fff; }
+.btn.lg { font-size: 17px; padding: 15px 32px; }
+.btn.on-dark { background: transparent; color: #fff; border-color: rgba(255,255,255,.45); }
+.btn.on-dark:hover:not(:disabled) { border-color: #fff; color: #fff; }
+.btn.gold { background: var(--gold); border-color: var(--gold); color: #1d1405; }
+.btn.gold:hover:not(:disabled) { filter: brightness(1.05); color: #1d1405; }
+
+/* 섹션 공통 */
+section.sec { padding: 110px 0; }
+section.sec.gray { background: var(--gray); }
+.sec-head { text-align: center; margin-bottom: 56px; }
+.sec-head .en { font-weight: 700; font-size: 14px; letter-spacing: .22em; color: var(--teal); text-transform: uppercase; }
+.sec-head h2 { margin: 12px 0 14px; font-size: clamp(30px, 3.6vw, 44px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.3; }
+.sec-head p { margin: 0 auto; color: var(--ink-2); font-size: 18px; max-width: 40em; }
+
+/* 체크 콘솔 */
+.console { background: #fff; border: 1px solid var(--rule); border-radius: 24px; padding: 40px 44px; display: grid; gap: 26px; box-shadow: 0 20px 50px rgba(14,47,56,.06); transition: background .3s; }
+.console.alarm { background: var(--alarm); border-color: var(--alarm); color: #fff; }
+.console.alarm .msg, .console.alarm .eyebrow, .console.alarm .steps li { color: rgba(255,255,255,.9); }
+.console.alarm .steps li { border-top-color: rgba(255,255,255,.35); }
+@media (max-width: 700px) { .console { padding: 26px 22px; } }
+.status-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; }
+@media (max-width: 800px) { .status-row { grid-template-columns: minmax(0, 1fr); } }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; color: var(--teal); background: var(--teal-soft); padding: 5px 14px; border-radius: 999px; }
+.eyebrow b { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.eyebrow[data-kind="run"] { color: var(--left); background: #e8eefc; }
+.eyebrow[data-kind="ok"] { color: var(--ok); background: #e5f4ec; }
+.eyebrow[data-kind="warn"] { color: var(--warn); background: #fbf0dc; }
+.eyebrow[data-kind="bad"] { color: #fff; background: rgba(255,255,255,.18); }
+.headline { margin: 14px 0 10px; font-size: clamp(28px, 3.4vw, 42px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.25; text-wrap: balance; }
+.msg { margin: 0; font-size: 18px; color: var(--ink-2); white-space: pre-line; max-width: 46em; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.answer { display: flex; gap: 10px; flex-wrap: wrap; }
+.answer .btn { font-size: 18px; padding: 14px 30px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; counter-reset: s; }
+.steps li { counter-increment: s; font-weight: 600; font-size: 15px; color: var(--ink-3); border-top: 3px solid var(--rule); padding-top: 12px; }
+.steps li::before { content: "STEP 0" counter(s); display: block; font-size: 12px; letter-spacing: .14em; font-weight: 700; margin-bottom: 2px; }
+.steps li[data-on] { color: var(--teal); border-top-color: var(--teal); }
+.steps li[data-done] { color: var(--ink-2); border-top-color: var(--ink-3); }
+@media (max-width: 600px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.instruments { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 22px; margin-top: 22px; }
+@media (max-width: 900px) { .instruments { grid-template-columns: minmax(0, 1fr); } }
+.card { background: #fff; border: 1px solid var(--rule); border-radius: 20px; padding: 26px 28px; display: grid; gap: 16px; min-width: 0; align-content: start; }
+.card h3 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.02em; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.card h3 small { font-size: 13px; font-weight: 600; color: var(--ink-3); }
+.legend b { font-weight: 700; } .legend .l { color: var(--left); } .legend .r { color: var(--right); }
+canvas#graph { width: 100%; height: 260px; display: block; }
+.cam { position: relative; background: #000; border-radius: 14px; overflow: hidden; aspect-ratio: 4 / 3; width: 100%; max-width: 560px; justify-self: center; }
+.cam canvas { width: 100%; height: 100%; display: block; }
+.cam video { display: none; }
+.cam .tag { position: absolute; left: 12px; bottom: 12px; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; }
+.notes { font: 13px/1.8 var(--mono); color: var(--ink-2); white-space: pre-line; border-top: 1px solid var(--rule); padding-top: 14px; min-height: 1.8em; }
+.hands { display: grid; gap: 20px; }
+.hand { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px; align-items: center; }
+.hand svg { width: 96px; height: 96px; }
+.hand .name { font-weight: 800; font-size: 15px; }
+.hand .vals { font: 12px/1.7 var(--mono); color: var(--ink-2); }
+.hand .tap { font: 700 24px var(--mono); }
+.devices { display: flex; flex-wrap: wrap; gap: 8px; }
+.dev { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 6px 12px; border: 1px solid var(--rule); border-radius: 999px; background: #fff; }
+.dev i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
+.dev.on i { background: var(--ok); } .dev.off i { background: var(--alarm); }
+
+/* FAST */
+.fast { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+@media (max-width: 900px) { .fast { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .fast { grid-template-columns: minmax(0, 1fr); } }
+.fast article { background: #fff; border-radius: 20px; padding: 32px 28px; display: grid; gap: 10px; align-content: start; border: 1px solid var(--rule); }
+.fast .letter { font-size: 54px; font-weight: 900; line-height: 1; color: var(--teal); letter-spacing: -0.04em; }
+.fast article:last-child .letter { color: var(--gold); }
+.fast h4 { margin: 4px 0 0; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+.fast p { margin: 0; color: var(--ink-2); font-size: 15px; }
+.fast .how { font-size: 13px; font-weight: 700; color: var(--teal); border-top: 1px solid var(--rule); padding-top: 12px; margin-top: 6px; }
+
+/* 기록 */
+.ledger { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 22px; }
+@media (max-width: 900px) { .ledger { grid-template-columns: minmax(0, 1fr); } }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid var(--rule); vertical-align: baseline; }
+thead th { font-size: 13px; font-weight: 700; color: var(--ink-3); border-bottom: 2px solid var(--ink); }
+td.n { font-family: var(--mono); font-size: 14px; }
+td.std { font-size: 13px; color: var(--ink-3); }
+.v { display: inline-block; font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 999px; }
+.v.ok { color: var(--ok); background: #e5f4ec; } .v.bad { color: var(--alarm); background: #fbe7e6; } .v.warn { color: var(--warn); background: #fbf0dc; }
+.history { list-style: none; margin: 0; padding: 0; display: grid; max-height: 300px; overflow-y: auto; }
+.history li { display: grid; grid-template-columns: 96px 56px minmax(0, 1fr); gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--rule); font-size: 14px; align-items: baseline; }
+.history time { font: 13px var(--mono); color: var(--ink-3); }
+.history .sum { color: var(--ink-2); font-size: 13px; }
+.empty { color: var(--ink-3); font-size: 15px; padding: 8px 0; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+details.settings { margin-top: 22px; background: #fff; border: 1px solid var(--rule); border-radius: 20px; padding: 20px 28px; }
+details.settings summary { cursor: pointer; font-weight: 800; font-size: 16px; }
+.setgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px 30px; margin-top: 18px; }
+.field { display: grid; gap: 6px; } .field &gt; span { font-size: 13px; font-weight: 700; color: var(--ink-3); }
+input[type=text], select { font: 15px var(--body); padding: 10px 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--gray); color: var(--ink); width: 100%; }
+label.chk { display: flex; gap: 8px; align-items: center; font-size: 15px; }
+
+/* 푸터 · 퀵메뉴 */
+footer { background: var(--teal-deep); color: rgba(255,255,255,.72); padding: 64px 0 72px; font-size: 14px; }
+footer .inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 30px; align-items: end; }
+@media (max-width: 800px) { footer .inner { grid-template-columns: minmax(0, 1fr); } }
+@media (min-width: 801px) { footer .inner &gt; .row { margin-right: 110px; } }
+footer .logo { color: #fff; margin-bottom: 14px; }
+footer .num { font-size: 15px; color: rgba(255,255,255,.7); }
+footer .num strong { display: block; font-size: 40px; font-weight: 800; color: #fff; letter-spacing: -0.03em; line-height: 1.2; }
+.quick { position: fixed; right: max(24px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom)); z-index: 30; width: 88px; height: 88px; border-radius: 18px; background: var(--teal); color: #fff; border: 0; display: grid; place-items: center; align-content: center; gap: 2px; font: 700 14px var(--body); cursor: pointer; box-shadow: 0 14px 30px rgba(14,47,56,.3); }
+.quick svg { width: 26px; height: 26px; }
+.quick:hover { background: var(--teal-deep); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;header class="gnb"&gt;
+  &lt;div class="inner"&gt;
+    &lt;a class="logo" href="#top"&gt;
+      &lt;svg viewBox="0 0 32 32" aria-hidden="true"&gt;&lt;circle cx="16" cy="16" r="13" fill="none" stroke="#1a505e" stroke-width="3"/&gt;&lt;path d="M16 16 L16 6" stroke="#e0a93b" stroke-width="3" stroke-linecap="round"/&gt;&lt;path d="M16 16 L23 20" stroke="#1a505e" stroke-width="3" stroke-linecap="round"/&gt;&lt;/svg&gt;
+      골든타임 지킴이
+    &lt;/a&gt;
+    &lt;nav class="menu"&gt;&lt;a href="#check"&gt;1분 체크&lt;/a&gt;&lt;a href="#fast"&gt;뇌졸중 신호&lt;/a&gt;&lt;a href="#record"&gt;체크 기록&lt;/a&gt;&lt;a href="#settings"&gt;설정&lt;/a&gt;&lt;/nav&gt;
+    &lt;div class="gnb-right"&gt;
+      &lt;span class="call"&gt;응급 &lt;b&gt;119&lt;/b&gt; · 베트남 &lt;b&gt;115&lt;/b&gt;&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/header&gt;
+
+&lt;section class="hero" id="top"&gt;
+  &lt;svg class="ecg" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true"&gt;&lt;polyline fill="none" stroke="#fff" stroke-width="2" points="0,60 300,60 330,60 345,20 360,100 375,10 392,60 600,60 900,60 930,60 945,20 960,100 975,10 992,60 1200,60"/&gt;&lt;/svg&gt;
+  &lt;div class="inner"&gt;
+    &lt;div&gt;
+      &lt;div class="en"&gt;Stroke Self Check&lt;/div&gt;
+      &lt;h1&gt;쓰러지기 전 1분,&lt;br&gt;&lt;em&gt;골든타임&lt;/em&gt;을 지킵니다&lt;/h1&gt;
+      &lt;p class="lead"&gt;뇌졸중 치료는 '마지막으로 정상이었던 시각'부터 약 4.5시간 안에 받아야 합니다. 매일 1분 체크로 이상 신호를 일찍 찾고, 그 시각을 기록해 두세요.&lt;/p&gt;
+      &lt;div class="cta"&gt;
+        &lt;button class="btn gold lg" id="heroStart"&gt;지금 1분 체크하기&lt;/button&gt;
+        &lt;a class="btn on-dark lg" href="#fast" style="text-decoration:none"&gt;뇌졸중 신호 알아보기&lt;/a&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="dial-wrap"&gt;&lt;svg class="dial" id="dial" viewBox="0 0 240 240" role="img" aria-label="골든타임 다이얼"&gt;&lt;/svg&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="pillbar"&gt;
+    &lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"&gt;&lt;circle cx="12" cy="12" r="9"/&gt;&lt;path d="M12 7v5l3 2"/&gt;&lt;/svg&gt;
+    &lt;strong id="heroLkwLabel"&gt;마지막 정상 확인&lt;/strong&gt;&lt;span id="heroLkw"&gt;아직 기록이 없어요. 첫 체크로 기준 시각을 만들어 주세요.&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;section class="sec" id="check"&gt;
+  &lt;div class="inner"&gt;
+    &lt;div class="sec-head"&gt;
+      &lt;div class="en"&gt;Self Check&lt;/div&gt;
+      &lt;h2&gt;1분 뇌졸중 자가 체크&lt;/h2&gt;
+      &lt;p&gt;양손에 기기를 쥐고 음성 안내를 따라 하세요. 팔 처짐, 손가락 속도, 얼굴 대칭, 말을 차례로 확인합니다.&lt;/p&gt;
+    &lt;/div&gt;
+
+    &lt;div class="console" id="hero"&gt;
+      &lt;div class="status-row"&gt;
+        &lt;div&gt;
+          &lt;div class="eyebrow" id="stEyebrow" data-kind="idle"&gt;&lt;b&gt;&lt;/b&gt;&lt;span id="stCount"&gt;대기 중&lt;/span&gt;&lt;/div&gt;
+          &lt;h3 class="headline" id="stMain"&gt;체크를 시작해 볼까요?&lt;/h3&gt;
+          &lt;p class="msg" id="stMsg"&gt;먼저 오른쪽 [마이크로비트 연결]로 수신기를 연결하고, 손에 쥘 L·R 기기의 전원을 켜 주세요.&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class="devices"&gt;
+          &lt;span class="dev" id="devRx"&gt;&lt;i&gt;&lt;/i&gt;&lt;span id="txtSerial"&gt;수신기 미연결&lt;/span&gt;&lt;/span&gt;
+          &lt;span class="dev" id="devL"&gt;&lt;i&gt;&lt;/i&gt;L 왼손&lt;/span&gt;
+          &lt;span class="dev" id="devR"&gt;&lt;i&gt;&lt;/i&gt;R 오른손&lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class="answer" id="qRow" hidden&gt;
+        &lt;button class="btn teal" id="qYes"&gt;정상이에요&lt;/button&gt;
+        &lt;button class="btn" id="qNo"&gt;이상해요&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class="actions"&gt;
+        &lt;button class="btn teal lg" id="btnStart"&gt;체크 시작&lt;/button&gt;
+        &lt;button class="btn lg" id="btnConnect"&gt;마이크로비트 연결&lt;/button&gt;
+        &lt;button class="btn lg" id="btnTest" disabled&gt;연결 테스트&lt;/button&gt;
+        &lt;button class="btn lg" id="btnStop"&gt;중단 · 경보 해제&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;ol class="steps" id="steps"&gt;&lt;li&gt;팔 처짐&lt;/li&gt;&lt;li&gt;손가락 두드리기&lt;/li&gt;&lt;li&gt;얼굴 대칭&lt;/li&gt;&lt;li&gt;말 따라 하기&lt;/li&gt;&lt;/ol&gt;
+    &lt;/div&gt;
+
+    &lt;div class="instruments"&gt;
+      &lt;div class="card"&gt;
+        &lt;h3 id="viewTitle"&gt;&lt;span&gt;팔 처짐 · 기준 자세 대비 각도&lt;/span&gt;&lt;small class="legend"&gt;&lt;b class="l"&gt;━ 왼손&lt;/b&gt;&amp;nbsp; &lt;b class="r"&gt;━ 오른손&lt;/b&gt;&amp;nbsp; &lt;b style="color:var(--alarm)"&gt;┄ ±10° 기준&lt;/b&gt;&lt;/small&gt;&lt;/h3&gt;
+        &lt;div id="graphBox"&gt;&lt;canvas id="graph"&gt;&lt;/canvas&gt;&lt;/div&gt;
+        &lt;div class="cam" id="camBox" hidden&gt;
+          &lt;video id="video" playsinline muted&gt;&lt;/video&gt;
+          &lt;canvas id="camCanvas" width="640" height="480"&gt;&lt;/canvas&gt;
+          &lt;span class="tag" id="camTag"&gt;카메라&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div class="notes" id="detail"&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class="card"&gt;
+        &lt;h3&gt;&lt;span&gt;양손 기기&lt;/span&gt;&lt;/h3&gt;
+        &lt;div class="hands"&gt;
+          &lt;div class="hand"&gt;
+            &lt;svg viewBox="0 0 120 120" aria-label="왼손 기울기"&gt;&lt;defs&gt;&lt;clipPath id="cL"&gt;&lt;circle cx="60" cy="60" r="54"/&gt;&lt;/clipPath&gt;&lt;/defs&gt;
+              &lt;g clip-path="url(#cL)"&gt;&lt;g id="horL"&gt;&lt;rect x="-60" y="-60" width="240" height="120" fill="var(--sky)"/&gt;&lt;rect x="-60" y="60" width="240" height="120" fill="var(--ground)"/&gt;&lt;line x1="-60" y1="60" x2="180" y2="60" stroke="#fff" stroke-width="2"/&gt;&lt;/g&gt;&lt;/g&gt;
+              &lt;circle cx="60" cy="60" r="54" fill="none" stroke="var(--left)" stroke-width="4"/&gt;&lt;path d="M36 60 h18 M66 60 h18 M60 55 v10" stroke="#111" stroke-width="3" fill="none"/&gt;&lt;/svg&gt;
+            &lt;div&gt;&lt;div class="name" style="color:var(--left)"&gt;L · 왼손&lt;/div&gt;&lt;div class="vals" id="valL"&gt;처짐 0.0°&lt;br&gt;회전 0.0°&lt;/div&gt;&lt;div class="tap" id="tapL"&gt;–&lt;/div&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class="hand"&gt;
+            &lt;svg viewBox="0 0 120 120" aria-label="오른손 기울기"&gt;&lt;defs&gt;&lt;clipPath id="cR"&gt;&lt;circle cx="60" cy="60" r="54"/&gt;&lt;/clipPath&gt;&lt;/defs&gt;
+              &lt;g clip-path="url(#cR)"&gt;&lt;g id="horR"&gt;&lt;rect x="-60" y="-60" width="240" height="120" fill="var(--sky)"/&gt;&lt;rect x="-60" y="60" width="240" height="120" fill="var(--ground)"/&gt;&lt;line x1="-60" y1="60" x2="180" y2="60" stroke="#fff" stroke-width="2"/&gt;&lt;/g&gt;&lt;/g&gt;
+              &lt;circle cx="60" cy="60" r="54" fill="none" stroke="var(--right)" stroke-width="4"/&gt;&lt;path d="M36 60 h18 M66 60 h18 M60 55 v10" stroke="#111" stroke-width="3" fill="none"/&gt;&lt;/svg&gt;
+            &lt;div&gt;&lt;div class="name" style="color:var(--right)"&gt;R · 오른손&lt;/div&gt;&lt;div class="vals" id="valR"&gt;처짐 0.0°&lt;br&gt;회전 0.0°&lt;/div&gt;&lt;div class="tap" id="tapR"&gt;–&lt;/div&gt;&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;section class="sec gray" id="fast"&gt;
+  &lt;div class="inner"&gt;
+    &lt;div class="sec-head"&gt;
+      &lt;div class="en"&gt;F · A · S · T&lt;/div&gt;
+      &lt;h2&gt;이런 신호가 보이면, 바로 확인하세요&lt;/h2&gt;
+      &lt;p&gt;뇌졸중은 갑자기 찾아옵니다. 의료진이 쓰는 FAST 원칙을 이 장치가 하나씩 확인합니다.&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div class="fast"&gt;
+      &lt;article&gt;&lt;div class="letter"&gt;F&lt;/div&gt;&lt;h4&gt;얼굴 Face&lt;/h4&gt;&lt;p&gt;웃을 때 한쪽 입꼬리가 처지거나 얼굴 한쪽이 마비된 느낌이 든다.&lt;/p&gt;&lt;div class="how"&gt;카메라가 입꼬리 좌우 높이를 비교&lt;/div&gt;&lt;/article&gt;
+      &lt;article&gt;&lt;div class="letter"&gt;A&lt;/div&gt;&lt;h4&gt;팔 Arm&lt;/h4&gt;&lt;p&gt;양팔을 앞으로 뻗으면 한쪽 팔이 아래로 처지거나 안쪽으로 돌아간다.&lt;/p&gt;&lt;div class="how"&gt;양손 기기의 가속도 센서로 각도 측정&lt;/div&gt;&lt;/article&gt;
+      &lt;article&gt;&lt;div class="letter"&gt;S&lt;/div&gt;&lt;h4&gt;말 Speech&lt;/h4&gt;&lt;p&gt;발음이 어눌하거나 쉬운 문장을 따라 말하기 어렵다.&lt;/p&gt;&lt;div class="how"&gt;음성 인식으로 발음 정확도 계산&lt;/div&gt;&lt;/article&gt;
+      &lt;article&gt;&lt;div class="letter"&gt;T&lt;/div&gt;&lt;h4&gt;시간 Time&lt;/h4&gt;&lt;p&gt;하나라도 해당되면 바로 119·115. 치료는 마지막 정상 시각부터 약 4.5시간 안에.&lt;/p&gt;&lt;div class="how"&gt;마지막 정상 시각을 매일 기록&lt;/div&gt;&lt;/article&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;section class="sec" id="record"&gt;
+  &lt;div class="inner"&gt;
+    &lt;div class="sec-head"&gt;
+      &lt;div class="en"&gt;Record&lt;/div&gt;
+      &lt;h2&gt;판정 기록&lt;/h2&gt;
+      &lt;p&gt;정상 기록이 3번 쌓이면 '평소의 나'와 비교하는 개인 기준선으로 판정합니다.&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div class="ledger"&gt;
+      &lt;div class="card" id="resultBox"&gt;
+        &lt;h3&gt;&lt;span&gt;이번 체크 결과&lt;/span&gt;&lt;small id="resMode"&gt;아직 측정 전&lt;/small&gt;&lt;/h3&gt;
+        &lt;table&gt;
+          &lt;thead&gt;&lt;tr&gt;&lt;th&gt;지표&lt;/th&gt;&lt;th&gt;왼손&lt;/th&gt;&lt;th&gt;오른손&lt;/th&gt;&lt;th&gt;기준&lt;/th&gt;&lt;th&gt;판정&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+          &lt;tbody id="resBody"&gt;&lt;tr&gt;&lt;td colspan="5" class="empty"&gt;체크를 마치면 여기에 결과가 정리됩니다.&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/div&gt;
+      &lt;div class="card"&gt;
+        &lt;h3&gt;&lt;span&gt;체크 기록&lt;/span&gt;&lt;small&gt;마지막 정상 &lt;b id="lkw" style="color:var(--teal)"&gt;기록 없음&lt;/b&gt;&lt;/small&gt;&lt;/h3&gt;
+        &lt;ul class="history" id="history"&gt;&lt;/ul&gt;
+        &lt;div class="row"&gt;&lt;button class="btn" id="btnCsv"&gt;CSV로 저장&lt;/button&gt;&lt;button class="btn" id="btnClear"&gt;이 사용자 기록 지우기&lt;/button&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;details class="settings" id="settings"&gt;
+      &lt;summary&gt;설정 · 시뮬레이션&lt;/summary&gt;
+      &lt;div class="setgrid"&gt;
+        &lt;label class="field"&gt;&lt;span&gt;사용자&lt;/span&gt;&lt;input type="text" id="user" value="할머니"&gt;&lt;/label&gt;
+        &lt;label class="field"&gt;&lt;span&gt;카메라&lt;/span&gt;&lt;select id="camSelect"&gt;&lt;option value=""&gt;자동 (맥북 내장 우선)&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;
+        &lt;label class="field"&gt;&lt;span&gt;마이크&lt;/span&gt;&lt;select id="micSelect"&gt;&lt;option value=""&gt;자동 (맥북 내장 우선)&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;
+        &lt;div class="field"&gt;&lt;span&gt;판단 방식&lt;/span&gt;
+          &lt;label class="chk"&gt;&lt;input type="checkbox" id="optAuto" checked&gt; 얼굴·말을 카메라·마이크로 자동 판단&lt;/label&gt;
+          &lt;label class="chk"&gt;&lt;input type="checkbox" id="optVoice" checked&gt; 음성 안내&lt;/label&gt;
+        &lt;/div&gt;
+        &lt;div class="field"&gt;&lt;span&gt;시뮬레이션 (기기 없이 체험)&lt;/span&gt;
+          &lt;div class="row"&gt;&lt;button class="btn" id="simNormal"&gt;정상&lt;/button&gt;&lt;button class="btn" id="simLeft"&gt;왼팔 마비&lt;/button&gt;&lt;/div&gt;
+          &lt;label class="chk"&gt;&lt;input type="checkbox" id="optFast"&gt; 빠른 모드 (검사 4초)&lt;/label&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/details&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;footer&gt;
+  &lt;div class="inner"&gt;
+    &lt;div&gt;
+      &lt;div class="logo"&gt;골든타임 지킴이&lt;/div&gt;
+      &lt;p style="margin:0;max-width:52em"&gt;진단 도구가 아니라 조기 발견과 기록을 돕는 도구입니다. 이상이 느껴지면 판정과 관계없이 바로 응급 전화를 하세요. 카메라 영상은 이 컴퓨터 안에서만 처리되고, 음성 인식은 크롬(구글) 서버를 사용합니다. 기록은 이 컴퓨터의 크롬에만 저장됩니다.&lt;/p&gt;
+      &lt;p style="margin:14px 0 0"&gt;2026 SW융합 해커톤 · SDG 3.4&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div class="row" style="gap:40px"&gt;
+      &lt;div class="num"&gt;한국 응급&lt;strong&gt;119&lt;/strong&gt;&lt;/div&gt;
+      &lt;div class="num"&gt;베트남 응급&lt;strong&gt;115&lt;/strong&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/footer&gt;
+
+&lt;button class="quick" id="quickStart" aria-label="1분 체크로 이동"&gt;
+  &lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"&gt;&lt;circle cx="12" cy="12" r="9"/&gt;&lt;path d="M12 7v5l3 2"/&gt;&lt;/svg&gt;
+  1분 체크
+&lt;/button&gt;
+
+&lt;script type="module"&gt;
+// ───────── 설정 (실험 결과로 보정) ─────────
+const CFG = { DROP: 10, DIFF: 8, ROT: 15, TAP: 0.70, BASE_MIN: 3, Z: 3, GOLDEN_H: 4.5,
+              FACE_RATIO_MIN: 0.55, FACE_MIN_LIFT: 0.025, SPEECH_MIN: 0.75 };
+const PREP_DRIFT = 9, PREP_TAP = 15;   // 손가락 검사 전 준비 시간(초): 손마다 15초
+const SENTENCES = ['오늘은 날씨가 맑습니다', '나는 아침마다 물을 마십니다', '우리 집 강아지는 귀엽습니다', '할머니가 시장에 가십니다'];
+const VISION_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+const FACE_MODEL = 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
+const R_EYE = 33, L_EYE = 263, R_MOUTH = 61, L_MOUTH = 291;
+const HK = { L: '왼손', R: '오른손' };
+const TAP_BTN = { L: 'B 버튼(화면 오른쪽 버튼)', R: 'A 버튼(화면 왼쪽 버튼)' };   // 왼손 엄지는 B, 오른손 엄지는 A
+
+const $ = id =&gt; document.getElementById(id);
+const sleep = ms =&gt; new Promise(r =&gt; setTimeout(r, ms));
+const mean = a =&gt; a.reduce((s, x) =&gt; s + x, 0) / a.length;
+const median = a =&gt; { const s = [...a].sort((x, y) =&gt; x - y); return s[Math.floor(s.length / 2)]; };
+const pstdev = a =&gt; { const m = mean(a); return Math.sqrt(mean(a.map(x =&gt; (x - m) ** 2))); };
+const pad = n =&gt; String(n).padStart(2, '0');
+const hm = d =&gt; `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const hms = ms =&gt; { const s = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(s / 3600)}:${pad(Math.floor(s % 3600 / 60))}:${pad(s % 60)}`; };
+const fmtDur = ms =&gt; { const s = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(s / 3600)}시간 ${pad(Math.floor(s % 3600 / 60))}분`; };
+
+// ───────── 판정 규칙 ─────────
+function angleChange(samples) {
+  if (samples.length &lt; 6) return null;
+  const end = samples[samples.length - 1][0];
+  let base = samples.filter(s =&gt; s[0] &gt;= 1 &amp;&amp; s[0] &lt; 2);          // 처음 1초는 자세 잡는 시간
+  if (base.length &lt; 3) base = samples.filter(s =&gt; s[0] &lt; 1);
+  const last = samples.filter(s =&gt; s[0] &gt;= end - 1);
+  return [Math.abs(mean(last.map(s =&gt; s[1])) - mean(base.map(s =&gt; s[1]))),
+          Math.abs(mean(last.map(s =&gt; s[2])) - mean(base.map(s =&gt; s[2])))];
+}
+function derive(m) {
+  const fast = Math.max(m.tapL, m.tapR);
+  return { drop: Math.max(m.dropL, m.dropR), diff: Math.abs(m.dropL - m.dropR), rot: Math.max(m.rotL, m.rotR),
+           ratio: fast ? Math.min(m.tapL, m.tapR) / fast : 0 };
+}
+function judge(m, hist) {
+  const d = derive(m), base = hist.length &gt;= CFG.BASE_MIN, flags = [];
+  for (const [k, lim] of [['drop', CFG.DROP], ['diff', CFG.DIFF], ['rot', CFG.ROT]]) {
+    let bad;
+    if (base) { const v = hist.map(h =&gt; h[k]), mu = mean(v), sd = Math.max(pstdev(v), 2); bad = (d[k] - mu) / sd &gt; CFG.Z || d[k] &gt; lim * 2; }
+    else bad = d[k] &gt; lim;
+    if (bad) flags.push(k);
+  }
+  let bad;
+  if (base) { const v = hist.map(h =&gt; h.ratio), mu = mean(v), sd = Math.max(pstdev(v), 0.05); bad = (mu - d.ratio) / sd &gt; CFG.Z || d.ratio &lt; 0.5; }
+  else bad = d.ratio &lt; CFG.TAP;
+  if (bad) flags.push('ratio');
+  const weak = m.dropL &gt;= m.dropR ? '왼' : '오른', rot = m.rotL &gt;= m.rotR ? '왼' : '오른', slow = m.tapL &lt;= m.tapR ? '왼' : '오른';
+  const text = { drop: `${weak}팔 처짐 ${d.drop.toFixed(0)}°`, diff: `좌우 팔 높이 차이 ${d.diff.toFixed(0)}°`,
+                 rot: `${rot}손 안쪽 회전 ${d.rot.toFixed(0)}°`, ratio: `${slow}손 두드리기 느림 (${Math.round(d.ratio * 100)}%)` };
+  const reasons = flags.map(f =&gt; text[f]);
+  if (!m.speechOk) reasons.unshift('말이 어눌함');
+  if (!m.faceOk) reasons.unshift('얼굴 한쪽 처짐');
+  const level = (!m.faceOk || !m.speechOk || flags.length &gt;= 2) ? '위험' : flags.length ? '재검' : '정상';
+  return { level, reasons, flags, d, base, mode: base ? `개인 기준선 · 정상 기록 ${hist.length}회` : '기본 기준 · 정상 기록 3회 미만' };
+}
+const toJamo = s =&gt; s.replace(/[^\p{L}\p{N}]/gu, '').normalize('NFD');
+function matchLen(a, b) {
+  if (!a.length || !b.length) return 0;
+  let best = 0, ai = 0, bi = 0; const dp = new Array(b.length + 1).fill(0);
+  for (let i = 1; i &lt;= a.length; i++) {
+    let prev = 0;
+    for (let j = 1; j &lt;= b.length; j++) {
+      const tmp = dp[j]; dp[j] = a[i - 1] === b[j - 1] ? prev + 1 : 0;
+      if (dp[j] &gt; best) { best = dp[j]; ai = i - best; bi = j - best; }
+      prev = tmp;
+    }
+  }
+  if (!best) return 0;
+  return best + matchLen(a.slice(0, ai), b.slice(0, bi)) + matchLen(a.slice(ai + best), b.slice(bi + best));
+}
+function speechScore(target, heard) { if (!heard) return 0; const a = toJamo(target), b = toJamo(heard); return 2 * matchLen(a, b) / (a.length + b.length); }
+function mouthHeights(p) {
+  const [rx, ry] = p[R_EYE], [lx, ly] = p[L_EYE];
+  const iod = Math.hypot(lx - rx, ly - ry), ang = Math.atan2(ly - ry, lx - rx), cx = (rx + lx) / 2, cy = (ry + ly) / 2;
+  const c = Math.cos(-ang), s = Math.sin(-ang);
+  const relY = ([x, y]) =&gt; ((x - cx) * s + (y - cy) * c) / iod;
+  return [relY(p[R_MOUTH]), relY(p[L_MOUTH])];
+}
+function judgeFace(neutral, smile) {
+  if (neutral.length &lt; 5 || smile.length &lt; 5) return { ok: null, reason: '얼굴을 찾지 못했어요' };
+  const nR = median(neutral.map(m =&gt; m[0])), nL = median(neutral.map(m =&gt; m[1]));
+  const lifts = smile.map(m =&gt; [nR - m[0], nL - m[1]]).sort((a, b) =&gt; (b[0] + b[1]) - (a[0] + a[1]));
+  const top = lifts.slice(0, Math.max(3, Math.floor(lifts.length / 3)));
+  const liftR = median(top.map(t =&gt; t[0])), liftL = median(top.map(t =&gt; t[1]));
+  const big = Math.max(liftR, liftL), small = Math.min(liftR, liftL);
+  if (big &lt; CFG.FACE_MIN_LIFT) return { ok: null, reason: '웃음이 감지되지 않았어요' };
+  const ratio = Math.max(small, 0) / big, weak = liftR &lt; liftL ? '오른쪽' : '왼쪽', ok = ratio &gt;= CFG.FACE_RATIO_MIN;
+  return { ok, ratio, weak, reason: `입꼬리 좌우 비율 ${Math.round(ratio * 100)}%` + (ok ? '' : ` (${weak} 입꼬리가 덜 올라감)`) };
+}
+
+// ───────── 기록 ─────────
+const KEY = 'golden-time-web-v1';
+let store = {};
+try { store = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { store = {}; }
+const save = () =&gt; { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+const uname = () =&gt; $('user').value.trim() || '사용자';
+const hist = () =&gt; (store[uname()] ||= []);
+const normals = () =&gt; hist().filter(h =&gt; h.level === '정상').slice(-14).map(h =&gt; derive(h.m));
+const lastNormalRec = () =&gt; [...hist()].reverse().find(h =&gt; h.level === '정상');
+
+// ───────── 화면 ─────────
+const EYEBROW = { idle: '대기 중', step: '안내', run: '측정 중', ok: '정상', warn: '확인 필요', bad: '경보' };
+function show(kind, main, msg = '', count = '') {
+  $('hero').classList.toggle('alarm', kind === 'bad');
+  $('stEyebrow').dataset.kind = kind;
+  $('stCount').textContent = count || EYEBROW[kind] || '';
+  $('stMain').textContent = main; $('stMsg').textContent = msg;
+}
+function setStep(n) {   // 0 = 없음, 1~4 = 진행 중인 단계, 5 = 모두 완료
+  [...$('steps').children].forEach((li, i) =&gt; {
+    li.toggleAttribute('data-on', i + 1 === n);
+    li.toggleAttribute('data-done', i + 1 &lt; n);
+  });
+}
+let detail = [];
+function note(t) { detail.push(t); $('detail').textContent = detail.join('\n'); }
+function gauge(h, pitch, roll) {
+  $('hor' + h).setAttribute('transform', `rotate(${(h === 'L' ? -roll : roll).toFixed(1)} 60 60) translate(0 ${(-pitch * 1.6).toFixed(1)})`);
+  $('val' + h).innerHTML = `처짐 ${Math.abs(pitch).toFixed(1)}°&lt;br&gt;회전 ${Math.abs(roll).toFixed(1)}°`;
+}
+const css = n =&gt; getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+// 골든타임 다이얼: 마지막 정상 시각부터 4.5시간
+const SVGNS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, text) { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; }
+function arcPath(cx, cy, r, a0, a1) {
+  const p = a =&gt; [cx + r * Math.sin(a), cy - r * Math.cos(a)];
+  const [x0, y0] = p(a0), [x1, y1] = p(a1), large = a1 - a0 &gt; Math.PI ? 1 : 0;
+  return `M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+}
+function renderDial() {
+  const svg = $('dial'); svg.replaceChildren();
+  const alarm = $('hero').classList.contains('alarm');
+  const fg = '#ffffff', sub = 'rgba(255,255,255,.62)', track = 'rgba(255,255,255,.16)', gold = alarm ? '#ff6b63' : '#e0a93b';
+  const rec = lastNormalRec(), total = CFG.GOLDEN_H * 3600e3;
+  const elapsed = rec ? Date.now() - rec.ts : null, remain = rec ? total - elapsed : null;
+  svg.append(el('circle', { cx: 120, cy: 120, r: 100, fill: 'none', stroke: track, 'stroke-width': 10 }));
+  for (let i = 0; i &lt;= 9; i++) {           // 30분 눈금 (0 ~ 4.5시간)
+    const a = i / 9 * 2 * Math.PI, major = i % 2 === 0;
+    const r0 = major ? 82 : 86, r1 = 90;
+    svg.append(el('line', { x1: 120 + r0 * Math.sin(a), y1: 120 - r0 * Math.cos(a), x2: 120 + r1 * Math.sin(a), y2: 120 - r1 * Math.cos(a), stroke: sub, 'stroke-width': major ? 1.6 : 1 }));
+  }
+  [['0', 0], ['1h', 2], ['2h', 4], ['3h', 6], ['4h', 8]].forEach(([t, i]) =&gt; {
+    const a = i / 9 * 2 * Math.PI;
+    svg.append(el('text', { x: 120 + 70 * Math.sin(a), y: 120 - 70 * Math.cos(a) + 3.5, 'text-anchor': 'middle', 'font-size': 9, fill: sub }, t));
+  });
+  if (rec &amp;&amp; remain &gt; 0) {
+    const frac = Math.min(1, elapsed / total);
+    svg.append(el('path', { d: arcPath(120, 120, 100, frac * 2 * Math.PI, 2 * Math.PI - 0.0001), fill: 'none', stroke: gold, 'stroke-width': 10, 'stroke-linecap': 'butt' }));
+    const a = frac * 2 * Math.PI;
+    svg.append(el('circle', { cx: 120 + 100 * Math.sin(a), cy: 120 - 100 * Math.cos(a), r: 7, fill: fg }));
+  }
+  const label = !rec ? '기록 없음' : remain &gt; 0 ? '남은 골든타임' : '다시 체크하세요';
+  svg.append(el('text', { x: 120, y: 96, 'text-anchor': 'middle', 'font-size': 10, 'letter-spacing': '1.5', fill: sub }, label));
+  svg.append(el('text', { x: 120, y: 128, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 600, fill: fg }, rec ? (remain &gt; 0 ? hms(remain) : '4:30:00+') : '–:––:––'));
+  svg.append(el('text', { x: 120, y: 152, 'text-anchor': 'middle', 'font-size': 10, fill: sub }, rec ? `마지막 정상 ${hm(new Date(rec.ts))}` : '체크하면 기준 시각이 생겨요'));
+  $('heroLkw').textContent = !rec ? '아직 기록이 없어요. 첫 체크로 기준 시각을 만들어 주세요.'
+    : remain &gt; 0 ? `${hm(new Date(rec.ts))}  ·  지금 증상이 생긴다면 남은 골든타임 ${hms(remain)}`
+    : `${hm(new Date(rec.ts))}  ·  4.5시간이 지났어요. 다시 체크해 주세요.`;
+}
+setInterval(renderDial, 1000);
+
+function drawGraph() {
+  const cv = $('graph'), dpr = devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (!w) return;
+  cv.width = w * dpr; cv.height = h * dpr;
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
+  const R = 30, x0 = 44, x1 = w - 8, y = v =&gt; h / 2 - Math.max(-R, Math.min(R, v)) / R * (h / 2 - 14), x = t =&gt; x0 + Math.min(t, TEST) / TEST * (x1 - x0);
+  c.font = '11px ' + css('--mono'); c.textAlign = 'right'; c.textBaseline = 'middle';
+  for (const v of [-30, -20, 0, 20, 30]) {
+    c.strokeStyle = css('--rule'); c.lineWidth = v === 0 ? 1.2 : 0.6; c.beginPath(); c.moveTo(x0, y(v)); c.lineTo(x1, y(v)); c.stroke();
+    c.fillStyle = css('--ink-3'); c.fillText(`${v &gt; 0 ? '+' : ''}${v}°`, x0 - 8, y(v));
+  }
+  c.setLineDash([4, 4]); c.strokeStyle = css('--alarm'); c.lineWidth = 1;
+  for (const v of [-CFG.DROP, CFG.DROP]) { c.beginPath(); c.moveTo(x0, y(v)); c.lineTo(x1, y(v)); c.stroke(); }
+  c.setLineDash([]); c.textAlign = 'center'; c.fillStyle = css('--ink-3');
+  for (let s = 0; s &lt;= TEST; s += TEST &gt; 5 ? 2 : 1) c.fillText(`${s}s`, x(s), h - 6);
+  c.fillStyle = css('--inset'); c.globalAlpha = .6; c.fillRect(x0, 0, x(1) - x0, h - 16); c.globalAlpha = 1;   // 자세 잡는 1초
+  for (const hd of ['L', 'R']) {
+    const s = run.samples[hd]; if (s.length &lt; 2) continue;
+    const base = (s.find(p =&gt; p[0] &gt;= 1 &amp;&amp; p[0] &lt; 2) || s[0])[1];
+    c.strokeStyle = css(hd === 'L' ? '--left' : '--right'); c.lineWidth = 2.2; c.lineJoin = 'round'; c.beginPath();
+    s.forEach((p, i) =&gt; { const px = x(p[0]), py = y(p[1] - base); i ? c.lineTo(px, py) : c.moveTo(px, py); });
+    c.stroke();
+    const lp = s[s.length - 1]; c.fillStyle = c.strokeStyle; c.beginPath(); c.arc(x(lp[0]), y(lp[1] - base), 3.5, 0, 7); c.fill();
+  }
+}
+addEventListener('resize', drawGraph);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () =&gt; { drawGraph(); renderDial(); });
+
+// ───────── 소리 ─────────
+let koVoice = null;
+const pickVoice = () =&gt; { koVoice = speechSynthesis.getVoices().find(v =&gt; v.lang.startsWith('ko')) || null; };
+speechSynthesis.onvoiceschanged = pickVoice; pickVoice();
+function say(text) {
+  return new Promise(res =&gt; {
+    if (!$('optVoice').checked) return res();
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.lang = 'ko-KR'; if (koVoice) u.voice = koVoice; u.rate = 1.05;
+    const t = setTimeout(res, 1500 + text.length * 160);
+    u.onend = () =&gt; { clearTimeout(t); res(); };
+    speechSynthesis.speak(u);
+  });
+}
+let actx = null;
+function beep(freq = 1000, ms = 220) {
+  try { actx ||= new AudioContext(); const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = freq; g.gain.value = 0.15; o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + ms / 1000); } catch (e) {}
+}
+
+// ───────── 마이크로비트 (Web Serial) ─────────
+let port = null, writer = null, linkTest = null;
+function setDev(id, state) { $(id).classList.toggle('on', state === 'on'); $(id).classList.toggle('off', state === 'off'); }
+function setSerial(on, text) { setDev('devRx', on ? 'on' : null); $('txtSerial').textContent = text; $('btnTest').disabled = !on; if (!on) { setDev('devL', null); setDev('devR', null); } }
+async function connectSerial() {
+  if (!('serial' in navigator)) { show('warn', '이 브라우저는 마이크로비트 연결을 지원하지 않아요', '크롬이나 엣지로 열어 주세요.'); return; }
+  try { port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x0D28 }] }); await port.open({ baudRate: 115200 }); }
+  catch (e) { setSerial(false, '수신기 미연결'); return; }
+  writer = port.writable.getWriter();
+  setSerial(true, '수신기 연결됨');
+  readLoop();
+  await testLink();
+}
+async function readLoop() {
+  const dec = new TextDecoder(); let buf = '';
+  const reader = port.readable.getReader();
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf('\n')) &gt;= 0) { const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (line) onLine(line); }
+    }
+  } catch (e) {}
+  finally { reader.releaseLock(); writer = null; port = null; setSerial(false, '연결 끊김'); setDev('devRx', 'off'); }
+}
+async function send(cmd) {
+  if (!writer || run.sim) return;
+  const n = ['DRIFT', 'STOP', 'TAP_L', 'TAP_R'].includes(cmd) ? 2 : 1;
+  try { for (let i = 0; i &lt; n; i++) { await writer.write(new TextEncoder().encode(cmd + '\n')); if (i &lt; n - 1) await sleep(30); } } catch (e) {}
+}
+async function testLink() {
+  linkTest = { L: 0, R: 0 };
+  show('step', '연결을 확인하고 있어요', '손에 쥘 마이크로비트 L과 R의 전원이 켜져 있어야 해요.', '연결 테스트');
+  await send('DRIFT'); await sleep(1500); await send('STOP');
+  const t = linkTest; linkTest = null;
+  setDev('devL', t.L &gt; 3 ? 'on' : 'off'); setDev('devR', t.R &gt; 3 ? 'on' : 'off');
+  if (t.L &gt; 3 &amp;&amp; t.R &gt; 3) show('ok', '준비됐어요', '양손 기기 신호가 모두 들어옵니다. [체크 시작]을 누르세요.', '연결 확인');
+  else if (!t.L &amp;&amp; !t.R) show('warn', '손 기기 신호가 없어요', '연결한 기기가 하트 모양(수신용)인지, L·R 전원이 켜졌는지 확인하세요.');
+  else show('warn', `${t.L &gt; 3 ? '오른손' : '왼손'} 신호가 없어요`, '신호가 없는 쪽 전원과 화면 글자(L/R)를 확인하세요.');
+}
+function onLine(line) {
+  const p = line.split(',');
+  if (p[0] === 'D' &amp;&amp; p.length === 4 &amp;&amp; (p[1] === 'L' || p[1] === 'R')) {
+    if (linkTest) { linkTest[p[1]]++; return; }
+    if (run.phase !== 'DRIFT') return;
+    const t = (performance.now() - run.t0) / 1000, pitch = +p[2], roll = +p[3];
+    if (Number.isNaN(pitch) || Number.isNaN(roll)) return;
+    run.samples[p[1]].push([t, pitch, roll]);
+    const b = run.samples[p[1]][0];
+    gauge(p[1], pitch - b[1], roll - b[2]);
+    drawGraph();
+  } else if (p[0] === 'T' &amp;&amp; p.length === 3 &amp;&amp; run.phase === 'TAP' &amp;&amp; p[1] === run.hand) {
+    run.taps[p[1]] = +p[2] || 0;
+  }
+}
+
+// ───────── 검사 진행 ─────────
+let TEST = 10, runId = 0, alarmTimer = null, lastYellow = null;
+let run = { samples: { L: [], R: [] }, taps: { L: 0, R: 0 }, phase: null, hand: null, t0: 0, drift: null, answers: {}, sim: null, active: false };
+const alive = id =&gt; id === runId &amp;&amp; run.active;
+async function wait(ms, id) { await sleep(ms); if (!alive(id)) throw new Error('stopped'); }
+const gauss = s =&gt; { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return s * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+const IDLE_MSG = "뇌졸중 치료는 '마지막으로 정상이었던 시각'부터 약 4.5시간 안에 받아야 합니다. 매일 체크해서 그 시각을 남겨 두세요.";
+
+function stopAll(silent) {
+  runId++; run.active = false; run.phase = null;
+  if (alarmTimer) { clearInterval(alarmTimer); alarmTimer = null; }
+  $('btnStart').disabled = false; $('qRow').hidden = true; closeCamera();
+  try { speechSynthesis.cancel(); } catch (e) {}
+  send('STOP');
+  if (!silent) { show('idle', '체크를 시작해 볼까요?', IDLE_MSG); setStep(0); }
+  renderDial();
+}
+async function countdown(n, title, msg, id) {
+  for (let k = n; k &gt; 0; k--) { show('step', title, msg, `준비 ${k}`); await wait(1000, id); }
+}
+function setTap(h, n) { $('tap' + h).textContent = n == null ? '–' : `${n}회`; }
+
+async function startCheck(sim = null) {
+  if (!sim &amp;&amp; !writer) { show('warn', '마이크로비트가 연결되지 않았어요', '위의 [마이크로비트 연결]을 누르고 하트 모양(수신용)을 고르세요. 기기 없이 체험하려면 설정의 시뮬레이션을 쓰세요.'); return; }
+  stopAll(true);
+  const id = runId;
+  TEST = sim &amp;&amp; $('optFast').checked ? 4 : 10;
+  run = { samples: { L: [], R: [] }, taps: { L: 0, R: 0 }, phase: null, hand: null, t0: 0, drift: null, answers: {}, sim, active: true, faceRatio: null, speechScore: null, heard: null };
+  detail = []; $('detail').textContent = '';
+  $('btnStart').disabled = true; gauge('L', 0, 0); gauge('R', 0, 0); setTap('L'); setTap('R'); drawGraph();
+  try {
+    setStep(1);
+    const msg1 = '양손에 기기를 쥐고(화면이 위로), 손바닥을 위로 한 채 팔을 앞으로 쭉 뻗으세요. 그리고 눈을 감으세요.';
+    say('팔 처짐 검사입니다. ' + msg1);
+    await countdown(PREP_DRIFT, '팔을 앞으로 뻗고 눈을 감으세요', msg1, id);
+    say('시작. 그대로 버티세요.');
+    run.phase = 'DRIFT'; run.t0 = performance.now(); send('DRIFT');
+    const simTimer = sim ? setInterval(simDrift, 100) : null;
+    for (let t = 0; t &lt; TEST * 10; t++) { show('run', '그대로 버티세요', '눈을 감고, 팔을 움직이지 마세요.', `측정 ${(TEST - t / 10).toFixed(1)}s`); await wait(100, id); }
+    if (simTimer) clearInterval(simTimer);
+    run.phase = null; send('STOP');
+    const L = angleChange(run.samples.L), R = angleChange(run.samples.R);
+    if (!L || !R) {
+      const miss = [!L &amp;&amp; '왼손', !R &amp;&amp; '오른손'].filter(Boolean).join(', ');
+      stopAll(true); setStep(0); show('warn', `${miss} 기기 신호가 없어요`, '손 마이크로비트 전원을 확인하고 [연결 테스트]를 해 보세요.'); say(`${miss} 기기 신호가 없어요`); return;
+    }
+    run.drift = { L, R };
+    note(`팔 처짐    왼 ${L[0].toFixed(1)}°   오른 ${R[0].toFixed(1)}°      손 회전   왼 ${L[1].toFixed(1)}°   오른 ${R[1].toFixed(1)}°`);
+    say('끝. 팔을 내리세요.');
+    await wait(2000, id);
+
+    setStep(2);
+    for (const h of ['R', 'L']) {
+      const msg2 = `${HK[h]}에 기기를 쥐고, 엄지로 ${TAP_BTN[h]}을 최대한 빨리 누르세요.`;
+      say(`${HK[h]} 검사입니다. 엄지로 ${TAP_BTN[h].slice(0, 4)}을 최대한 빨리 누르세요.`);
+      await countdown(PREP_TAP, `${HK[h]} 엄지로 ${TAP_BTN[h].slice(0, 4)} 연타`, msg2, id);
+      say('시작!');
+      run.phase = 'TAP'; run.hand = h; run.t0 = performance.now(); send('TAP_' + h);
+      for (let t = 0; t &lt; TEST * 10; t++) {
+        if (sim) run.taps[h] = Math.floor((t / 10) * ((sim === 'left' &amp;&amp; h === 'L') ? 2.6 : (h === 'R' ? 5.6 : 5.0)));
+        setTap(h, run.taps[h]);
+        show('run', `${HK[h]}  ${run.taps[h]}회`, '계속 빠르게 누르세요!', `측정 ${(TEST - t / 10).toFixed(1)}s`);
+        await wait(100, id);
+      }
+      run.phase = null; send('STOP');
+      await wait(1200, id);
+    }
+    if (Math.max(run.taps.L, run.taps.R) === 0) { stopAll(true); setStep(0); show('warn', '버튼 입력이 없어요', '왼손 L은 B 버튼(화면 오른쪽), 오른손 R은 A 버튼(화면 왼쪽)을 눌러 주세요.'); say('버튼 입력이 없어요'); return; }
+    note(`두드리기  왼 ${run.taps.L}회   오른 ${run.taps.R}회`);
+
+    setStep(3);
+    run.answers.face = await faceStep(id);
+    await wait(1500, id);
+    setStep(4);
+    run.answers.speech = await speechStep(id);
+    await wait(1500, id);
+    setStep(5);
+    finish();
+  } catch (e) {
+    if (e.message !== 'stopped') { console.error(e); stopAll(true); show('warn', '오류가 났어요', e.message); }
+  }
+}
+function simDrift() {
+  if (run.phase !== 'DRIFT') return;
+  const t = (performance.now() - run.t0) / 1000, k = Math.min(t / TEST, 1);
+  for (const h of ['L', 'R']) {
+    let p, r;
+    if (run.sim === 'left' &amp;&amp; h === 'L') { p = -20 * k ** 1.3; r = 24 * k; } else { p = -1.5 * k; r = 1.0 * k; }
+    onLine(`D,${h},${(p + gauss(0.6) + (h === 'L' ? 3 : -2)).toFixed(1)},${(r + gauss(0.6)).toFixed(1)}`);
+  }
+}
+function askManual(key, id) {
+  return new Promise((res, rej) =&gt; {
+    const face = key === 'face';
+    show('step', face ? '거울을 보고 웃어 보세요' : '문장을 따라 읽어 보세요',
+      face ? "'이~' 하고 웃었을 때 입꼬리가 한쪽만 처지나요?\n본인 또는 가족이 아래 버튼으로 답해 주세요." : '“오늘은 날씨가 맑습니다.”\n발음이 어눌하거나 말이 잘 안 나오나요?',
+      face ? '얼굴 · 직접 판단' : '말 · 직접 판단');
+    say(face ? '얼굴 확인입니다. 거울을 보고 이 하고 웃어 보세요.' : '말 확인입니다. 오늘은 날씨가 맑습니다, 따라 읽어 보세요.');
+    $('qRow').hidden = false;
+    const done = ok =&gt; { $('qRow').hidden = true; $('qYes').onclick = $('qNo').onclick = null; clearInterval(chk); res(ok); };
+    $('qYes').onclick = () =&gt; done(true); $('qNo').onclick = () =&gt; done(false);
+    const chk = setInterval(() =&gt; { if (!alive(id)) { clearInterval(chk); $('qRow').hidden = true; rej(new Error('stopped')); } }, 300);
+  });
+}
+
+// ── 얼굴 ──
+let landmarker = null, stream = null, camLoop = null;
+async function ensureLandmarker() {
+  if (landmarker) return landmarker;
+  const vision = await import(`${VISION_URL}/vision_bundle.mjs`);
+  const files = await vision.FilesetResolver.forVisionTasks(`${VISION_URL}/wasm`);
+  const make = delegate =&gt; vision.FaceLandmarker.createFromOptions(files, { baseOptions: { modelAssetPath: FACE_MODEL, delegate }, runningMode: 'VIDEO', numFaces: 1 });
+  try { landmarker = await make('GPU'); } catch (e) { landmarker = await make('CPU'); }
+  return landmarker;
+}
+async function listCameras() {
+  const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d =&gt; d.kind === 'videoinput');
+  const sel = $('camSelect'), keep = sel.value;
+  sel.innerHTML = '&lt;option value=""&gt;자동 (맥북 내장 우선)&lt;/option&gt;' + devs.map(d =&gt; `&lt;option value="${d.deviceId}"&gt;${d.label || '카메라'}&lt;/option&gt;`).join('');
+  if (keep &amp;&amp; devs.some(d =&gt; d.deviceId === keep)) sel.value = keep;
+  return devs;
+}
+function preferBuiltin(devs) {
+  devs = devs.filter(d =&gt; d.deviceId !== 'default' &amp;&amp; d.deviceId !== 'communications');   // 크롬의 '기본값' 항목 제외
+  return devs.find(d =&gt; /macbook|facetime|built-?in|integrated|내장/i.test(d.label)) || devs.find(d =&gt; !/iphone|continuity|‘|’|연속성/i.test(d.label)) || devs[0];
+}
+// 마이크: 아이폰(연속성 마이크) 말고 맥북 내장 마이크를 고른다
+async function listMics() {
+  const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d =&gt; d.kind === 'audioinput');
+  const sel = $('micSelect'), keep = sel.value;
+  sel.innerHTML = '&lt;option value=""&gt;자동 (맥북 내장 우선)&lt;/option&gt;' + devs.filter(d =&gt; d.deviceId !== 'default' &amp;&amp; d.deviceId !== 'communications')
+    .map(d =&gt; `&lt;option value="${d.deviceId}"&gt;${d.label || '마이크'}&lt;/option&gt;`).join('');
+  if (keep &amp;&amp; devs.some(d =&gt; d.deviceId === keep)) sel.value = keep;
+  return devs;
+}
+async function openMic() {
+  let s = await navigator.mediaDevices.getUserMedia({ audio: true });       // 권한 요청
+  const devs = await listMics();
+  const want = $('micSelect').value ? devs.find(d =&gt; d.deviceId === $('micSelect').value) : preferBuiltin(devs);
+  if (want &amp;&amp; want.deviceId !== s.getAudioTracks()[0].getSettings().deviceId) {
+    s.getTracks().forEach(t =&gt; t.stop());
+    s = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: want.deviceId } } });
+  }
+  return s;
+}
+async function openCamera() {
+  stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  const devs = await listCameras();
+  const want = $('camSelect').value ? devs.find(d =&gt; d.deviceId === $('camSelect').value) : preferBuiltin(devs);
+  const cur = stream.getVideoTracks()[0].getSettings().deviceId;
+  if (want &amp;&amp; want.deviceId !== cur) {
+    stream.getTracks().forEach(t =&gt; t.stop());
+    stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: want.deviceId }, width: 640, height: 480 } });
+  }
+  const v = $('video'); v.srcObject = stream; await v.play();
+  $('camTag').textContent = stream.getVideoTracks()[0].label || '카메라';
+  $('graphBox').hidden = true; $('camBox').hidden = false;
+  $('viewTitle').firstElementChild.textContent = '얼굴 · 입꼬리 좌우 대칭';
+}
+function closeCamera() {
+  if (camLoop) { cancelAnimationFrame(camLoop); camLoop = null; }
+  if (stream) { stream.getTracks().forEach(t =&gt; t.stop()); stream = null; }
+  $('camBox').hidden = true; $('graphBox').hidden = false;
+  $('viewTitle').firstElementChild.textContent = '팔 처짐 · 기준 자세 대비 각도';
+  drawGraph();
+}
+async function faceStep(id) {
+  if (!$('optAuto').checked) return askManual('face', id);
+  for (let attempt = 0; attempt &lt; 2; attempt++) {
+    try {
+      show('step', '카메라를 준비하고 있어요', '크롬이 카메라 사용을 물으면 [허용]을 눌러 주세요.', '얼굴 · 자동');
+      await ensureLandmarker(); await openCamera();
+    } catch (e) {
+      closeCamera();
+      note(`얼굴: 자동 판단 불가 (${e.name === 'NotAllowedError' ? '카메라 권한 거부' : e.message}) → 직접 판단`);
+      return askManual('face', id);
+    }
+    const r = await measureFace(id);
+    closeCamera();
+    if (r.ok === null) {
+      if (attempt === 0) { show('warn', r.reason, '한 번 더 해 볼게요.'); await say(`${r.reason}. 한 번 더 해 볼게요.`); continue; }
+      note(`얼굴: ${r.reason} → 직접 판단`); return askManual('face', id);
+    }
+    run.faceRatio = r.ratio;
+    note(`얼굴      ${r.reason}`);
+    if (r.ok) { show('ok', '얼굴 대칭 정상', r.reason, '얼굴 · 자동'); say('얼굴은 정상입니다.'); }
+    else { show('warn', '얼굴 한쪽이 처져 보여요', r.reason, '얼굴 · 자동'); say(`${r.weak} 입꼬리가 덜 올라갔어요.`); }
+    return r.ok;
+  }
+}
+function measureFace(id) {
+  return new Promise((res, rej) =&gt; {
+    const v = $('video'), cv = $('camCanvas'), c = cv.getContext('2d');
+    const data = { neutral: [], smile: [] };
+    let phase = 'prep', t0 = performance.now(), lastTs = -1;
+    show('step', '카메라를 정면으로 보세요', '가만히 계시면 평소 얼굴을 먼저 잽니다.', '얼굴 · 자동');
+    say('얼굴 확인입니다. 카메라를 정면으로 보고 가만히 계세요.');
+    const tick = () =&gt; {
+      if (!alive(id)) { rej(new Error('stopped')); return; }
+      const w = v.videoWidth || 640, h = v.videoHeight || 480;
+      if (cv.width !== w) { cv.width = w; cv.height = h; }
+      c.save(); c.translate(w, 0); c.scale(-1, 1); c.drawImage(v, 0, 0, w, h);
+      const now = performance.now();
+      if (now &gt; lastTs) {
+        lastTs = now;
+        const out = landmarker.detectForVideo(v, now);
+        const lm = out.faceLandmarks &amp;&amp; out.faceLandmarks[0];
+        if (lm) {
+          const P = {}; for (const i of [R_EYE, L_EYE, R_MOUTH, L_MOUTH]) P[i] = [lm[i].x * w, lm[i].y * h];
+          if (phase === 'neutral' || phase === 'smile') data[phase].push(mouthHeights(P));
+          c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 1.5; c.setLineDash([6, 5]);
+          c.beginPath(); c.moveTo(...P[R_EYE]); c.lineTo(...P[L_EYE]); c.stroke(); c.setLineDash([]);
+          c.fillStyle = '#ffffff'; for (const i of [R_EYE, L_EYE]) { c.beginPath(); c.arc(P[i][0], P[i][1], 4, 0, 7); c.fill(); }
+          c.fillStyle = '#e8b54a'; for (const i of [R_MOUTH, L_MOUTH]) { c.beginPath(); c.arc(P[i][0], P[i][1], 6.5, 0, 7); c.fill(); }
+        }
+      }
+      c.restore();
+      const t = (now - t0) / 1000;
+      if (phase === 'prep' &amp;&amp; t &gt; 3.5) { phase = 'neutral'; t0 = now; show('run', '그대로 가만히', '평소 얼굴을 재고 있어요 (2초)', '얼굴 · 측정'); }
+      else if (phase === 'neutral' &amp;&amp; t &gt; 2.5) { phase = 'smile'; t0 = now; show('run', "'이~' 하고 크게 웃으세요", '입꼬리를 양쪽으로 쭉 올려 주세요 (3초)', '얼굴 · 측정'); say('이 하고 크게 웃으세요.'); }
+      else if (phase === 'smile' &amp;&amp; t &gt; 3.5) { camLoop = null; res(judgeFace(data.neutral, data.smile)); return; }
+      camLoop = requestAnimationFrame(tick);
+    };
+    camLoop = requestAnimationFrame(tick);
+  });
+}
+
+// ── 말 ──
+let micNoted = false;
+function listen(ms, track) {
+  return new Promise((res, rej) =&gt; {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const r = new SR(); r.lang = 'ko-KR'; r.interimResults = false; r.maxAlternatives = 1; r.continuous = true;
+    let got = [], failed = false;
+    r.onresult = e =&gt; { got = Array.from(e.results).map(x =&gt; x[0].transcript); };
+    r.onerror = e =&gt; { if (e.error !== 'no-speech' &amp;&amp; e.error !== 'aborted') { failed = true; rej(new Error(e.error)); } };
+    r.onend = () =&gt; { if (!failed) res(got.join(' ').trim()); };
+    let usedTrack = false;
+    if (track) { try { r.start(track); usedTrack = true; } catch (e) { usedTrack = false; } }   // 최신 크롬: 고른 마이크로 인식
+    if (!usedTrack) r.start();                                                                 // 지원 안 하면 크롬 기본 마이크
+    if (!micNoted) {
+      micNoted = true;
+      note(usedTrack ? `마이크      ${track.label}` : '마이크      크롬 기본 마이크 사용 (아이폰이면 크롬 설정에서 맥북 마이크로 변경)');
+    }
+    setTimeout(() =&gt; { try { r.stop(); } catch (e) {} }, ms);
+  });
+}
+async function speechStep(id) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!$('optAuto').checked || !SR) { if ($('optAuto').checked) note('말: 이 브라우저는 음성 인식을 지원하지 않아 직접 판단'); return askManual('speech', id); }
+  for (let attempt = 0; attempt &lt; 2; attempt++) {
+    const sentence = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
+    show('step', `“${sentence}.”`, '‘삐’ 소리가 나면 이 문장을 따라 읽어 주세요.', '말 · 자동');
+    await say(`말 확인입니다. 삐 소리가 나면 따라 읽어 주세요. ${sentence}.`);
+    if (!alive(id)) throw new Error('stopped');
+    await sleep(300); beep();
+    show('run', `“${sentence}.”`, '지금 읽어 주세요. 6초 동안 듣고 있어요.', '말 · 듣는 중');
+    let heard = '', mic = null;
+    try {
+      try { mic = await openMic(); } catch (e) { mic = null; }       // 맥북 마이크를 열어서 인식에 넘김
+      heard = await listen(6000, mic ? mic.getAudioTracks()[0] : null);
+    }
+    catch (e) { note(`말: 음성 인식 불가 (${e.message === 'not-allowed' ? '마이크 권한 거부' : e.message}) → 직접 판단`); return askManual('speech', id); }
+    finally { if (mic) mic.getTracks().forEach(t =&gt; t.stop()); }
+    if (!alive(id)) throw new Error('stopped');
+    const score = speechScore(sentence, heard);
+    if (score &lt; CFG.SPEECH_MIN &amp;&amp; attempt === 0) {
+      const msg = heard ? '한 번 더 또박또박 읽어 주세요' : '잘 안 들렸어요';
+      show('warn', msg, `들린 말: “${heard || '(없음)'}”`, '말 · 다시'); await say(`${msg}. 다른 문장으로 한 번 더 해 볼게요.`); continue;
+    }
+    const ok = score &gt;= CFG.SPEECH_MIN;
+    run.speechScore = score; run.heard = heard;
+    note(`말        발음 정확도 ${Math.round(score * 100)}%   들린 말 “${heard || '(없음)'}”`);
+    if (ok) { show('ok', `발음 정확도 ${Math.round(score * 100)}%`, `들린 말: “${heard}”`, '말 · 자동'); say('말도 정상입니다.'); }
+    else { show('warn', `발음 정확도 ${Math.round(score * 100)}%`, `들린 말: “${heard || '(없음)'}”\n말이 어눌하게 들려요.`, '말 · 자동'); say('발음이 어눌하게 들려요.'); }
+    return ok;
+  }
+}
+
+// ── 결과 ──
+function finish() {
+  run.active = false; $('btnStart').disabled = false;
+  const m = { dropL: run.drift.L[0], dropR: run.drift.R[0], rotL: run.drift.L[1], rotR: run.drift.R[1],
+              tapL: run.taps.L, tapR: run.taps.R, faceOk: run.answers.face !== false, speechOk: run.answers.speech !== false };
+  const res = judge(m, normals());
+  const now = Date.now();
+  if (res.level === '재검' &amp;&amp; lastYellow &amp;&amp; now - lastYellow &lt; 15 * 60 * 1000) { res.level = '위험'; res.reasons.push('재검에서도 이상 신호'); }
+  lastYellow = res.level === '재검' ? now : null;
+  const prevNormal = lastNormalRec();
+  hist().push({ ts: now, m, level: res.level, reasons: res.reasons, faceRatio: run.faceRatio, speechScore: run.speechScore, heard: run.heard, sim: run.sim });
+  save(); renderResult(m, res); renderHistory();
+  if (res.level === '정상') {
+    show('ok', '정상입니다', `마지막 정상 확인 시각이 ${hm(new Date())}로 기록되었어요.\n오늘도 건강하세요.`, '판정 · 정상');
+    say('정상입니다. 마지막 정상 시각이 기록되었어요.'); send('OK');
+  } else if (res.level === '재검') {
+    show('warn', '한 번 더 확인이 필요해요', `${res.reasons.join(' · ')}\n1분 쉬고 다시 체크하세요. 또 이상이 나오면 위험으로 판정합니다.`, '판정 · 재검');
+    say('이상 신호가 하나 있어요. 1분 쉬고 다시 체크해 주세요.'); send('WARN');
+  } else {
+    send('ALARM'); say('뇌졸중이 의심됩니다. 지금 바로 119, 베트남에서는 115에 전화하세요.');
+    const tick = () =&gt; {
+      let t;
+      if (prevNormal) {
+        const el = Date.now() - prevNormal.ts, rem = CFG.GOLDEN_H * 3600e3 - el;
+        t = `마지막 정상 확인 ${hm(new Date(prevNormal.ts))} · ${fmtDur(el)} 전\n남은 골든타임(추정) ${rem &gt; 0 ? hms(rem) : '지남 — 그래도 지금 바로 병원으로'}`;
+      } else t = '마지막 정상 기록이 없어요. 증상을 처음 본 시각을 의료진에게 꼭 알리세요.';
+      show('bad', '지금 119 · 115에 전화하세요', `${res.reasons.join(' · ')}\n${t}`, '경보 · 뇌졸중 의심');
+      renderDial();
+    };
+    tick(); alarmTimer = setInterval(tick, 1000);
+  }
+  renderDial();
+}
+function renderResult(m, res) {
+  const f = new Set(res.flags), v = (bad, t = bad ? '이상' : '정상') =&gt; `&lt;span class="v ${bad ? 'bad' : 'ok'}"&gt;${t}&lt;/span&gt;`;
+  const b = res.base;
+  $('resBody').innerHTML = `
+    &lt;tr&gt;&lt;td&gt;팔 처짐&lt;/td&gt;&lt;td class="n"&gt;${m.dropL.toFixed(1)}°&lt;/td&gt;&lt;td class="n"&gt;${m.dropR.toFixed(1)}°&lt;/td&gt;&lt;td class="std"&gt;${b ? '평소 대비' : '≤ 10°'}&lt;/td&gt;&lt;td&gt;${v(f.has('drop'))}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;좌우 차이&lt;/td&gt;&lt;td class="n" colspan="2"&gt;${res.d.diff.toFixed(1)}°&lt;/td&gt;&lt;td class="std"&gt;${b ? '평소 대비' : '≤ 8°'}&lt;/td&gt;&lt;td&gt;${v(f.has('diff'))}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;손바닥 회전&lt;/td&gt;&lt;td class="n"&gt;${m.rotL.toFixed(1)}°&lt;/td&gt;&lt;td class="n"&gt;${m.rotR.toFixed(1)}°&lt;/td&gt;&lt;td class="std"&gt;${b ? '평소 대비' : '≤ 15°'}&lt;/td&gt;&lt;td&gt;${v(f.has('rot'))}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;두드리기&lt;/td&gt;&lt;td class="n"&gt;${m.tapL}&lt;/td&gt;&lt;td class="n"&gt;${m.tapR}&lt;/td&gt;&lt;td class="std"&gt;${b ? '평소 대비' : '비율 ≥ 70%'}&lt;/td&gt;&lt;td&gt;${v(f.has('ratio'), f.has('ratio') ? `이상 ${Math.round(res.d.ratio * 100)}%` : `정상 ${Math.round(res.d.ratio * 100)}%`)}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;얼굴 대칭&lt;/td&gt;&lt;td class="n" colspan="2"&gt;${run.faceRatio != null ? Math.round(run.faceRatio * 100) + '%' : '직접 응답'}&lt;/td&gt;&lt;td class="std"&gt;≥ 55%&lt;/td&gt;&lt;td&gt;${v(!m.faceOk)}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;발음&lt;/td&gt;&lt;td class="n" colspan="2"&gt;${run.speechScore != null ? Math.round(run.speechScore * 100) + '%' : '직접 응답'}&lt;/td&gt;&lt;td class="std"&gt;≥ 75%&lt;/td&gt;&lt;td&gt;${v(!m.speechOk)}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;b&gt;최종&lt;/b&gt;&lt;/td&gt;&lt;td colspan="3" class="std"&gt;${res.reasons.join(' · ') || '이상 신호 없음'}&lt;/td&gt;&lt;td&gt;&lt;span class="v ${res.level === '정상' ? 'ok' : res.level === '재검' ? 'warn' : 'bad'}"&gt;${res.level}&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;`;
+  $('resMode').textContent = res.mode;
+}
+function renderHistory() {
+  const rec = lastNormalRec();
+  $('lkw').textContent = rec ? (() =&gt; { const d = new Date(rec.ts); return `${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${hm(d)}`; })() : '기록 없음';
+  const cls = { '정상': 'ok', '재검': 'warn', '위험': 'bad' };
+  $('history').innerHTML = [...hist()].reverse().slice(0, 20).map(h =&gt; {
+    const d = new Date(h.ts);
+    return `&lt;li&gt;&lt;time&gt;${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${hm(d)}&lt;/time&gt;&lt;span class="v ${cls[h.level]}"&gt;${h.level}&lt;/span&gt;` +
+           `&lt;span class="sum"&gt;팔 ${h.m.dropL.toFixed(0)}°/${h.m.dropR.toFixed(0)}° · 탭 ${h.m.tapL}/${h.m.tapR}${h.faceRatio != null ? ' · 얼굴 ' + Math.round(h.faceRatio * 100) + '%' : ''}${h.speechScore != null ? ' · 말 ' + Math.round(h.speechScore * 100) + '%' : ''}${h.sim ? ' · 시뮬' : ''}&lt;/span&gt;&lt;/li&gt;`;
+  }).join('') || '&lt;li class="empty" style="display:block"&gt;아직 기록이 없어요. 정상 체크를 3번 하면 개인 기준선이 만들어집니다.&lt;/li&gt;';
+  renderDial();
+}
+function exportCsv() {
+  const rows = [['사용자', '시각', '결과', '왼팔처짐', '오른팔처짐', '왼손회전', '오른손회전', '왼손두드리기', '오른손두드리기', '얼굴정상', '말정상', '얼굴좌우비율', '발음정확도', '들린말', '시뮬레이션', '이유']];
+  for (const [u, list] of Object.entries(store)) for (const h of list) {
+    const d = new Date(h.ts);
+    rows.push([u, `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${hm(d)}:${pad(d.getSeconds())}`, h.level,
+      h.m.dropL.toFixed(1), h.m.dropR.toFixed(1), h.m.rotL.toFixed(1), h.m.rotR.toFixed(1), h.m.tapL, h.m.tapR,
+      h.m.faceOk ? 1 : 0, h.m.speechOk ? 1 : 0, h.faceRatio != null ? h.faceRatio.toFixed(2) : '', h.speechScore != null ? h.speechScore.toFixed(2) : '',
+      h.heard || '', h.sim ? 1 : 0, (h.reasons || []).join(' / ')]);
+  }
+  const csv = '﻿' + rows.map(r =&gt; r.map(v =&gt; `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = `골든타임_기록_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+}
+
+// ───────── 연결 ─────────
+$('btnConnect').onclick = connectSerial;
+$('btnTest').onclick = () =&gt; { if (!run.active) testLink(); };
+$('btnStart').onclick = () =&gt; startCheck(null);
+$('heroStart').onclick = () =&gt; { $('check').scrollIntoView({ behavior: 'smooth' }); setTimeout(() =&gt; startCheck(null), 500); };
+$('quickStart').onclick = () =&gt; $('check').scrollIntoView({ behavior: 'smooth' });
+$('btnStop').onclick = () =&gt; stopAll(false);
+$('simNormal').onclick = () =&gt; startCheck('normal');
+$('simLeft').onclick = () =&gt; startCheck('left');
+$('btnCsv').onclick = exportCsv;
+$('btnClear').onclick = () =&gt; { store[uname()] = []; lastYellow = null; save(); renderHistory(); };
+$('user').onchange = renderHistory;
+if (navigator.mediaDevices &amp;&amp; navigator.mediaDevices.enumerateDevices) { listCameras().catch(() =&gt; {}); listMics().catch(() =&gt; {}); }
+renderHistory(); drawGraph(); renderDial(); setStep(0);
+window.__gt = { judge, derive, angleChange, speechScore, judgeFace, startCheck, run: () =&gt; run };
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre></details>
+    </article></div></div></section>
+<section class="sec" id="python"><div class="inner"><div class="sec-head"><div class="en">Python</div><h2>파이썬 백업 앱</h2><p>Python 3 · 웹 앱과 같은 판정을 하는 데스크톱 버전</p></div><div class="files"><article class="file">
+      <div class="fhead"><span class="fname">golden_time.py</span><span class="chip">Python · tkinter · <b>880</b>줄</span></div>
+      <p class="role">파이썬 버전의 화면, 판정, SQLite 기록입니다. 웹 앱이 안 될 때 씁니다.</p>
+      <ul class="funcs"><li><code>angle_change() · derive() · judge()</code> 웹 앱과 같은 판정 규칙</li><li><code>App.connect()</code> 수신기 고유번호로 포트를 골라 pyserial로 연결</li><li><code>Speaker</code> macOS say / Windows 음성으로 안내</li></ul>
+      <details class="code"><summary>전체 코드 보기</summary>
+        <div class="codebar"><button class="copy" data-target="code-python-0">복사</button></div>
+        <pre id="code-python-0"># -*- coding: utf-8 -*-
+"""
+골든타임 지킴이 - 1분 뇌졸중 자가 체크 (노트북 프로그램, Python 3)
+
+검사 순서 (음성 안내)
+  1단계 팔 처짐 검사 10초   : 양손 마이크로비트 가속도 → 처짐 각도, 손바닥 회전 각도
+  2단계 손가락 두드리기 10초 : 오른손은 A 버튼, 왼손은 B 버튼 연타 → 좌우 속도 비율
+  3단계 얼굴 확인, 4단계 말 확인 : 본인 또는 가족이 버튼으로 응답
+판정
+  기록이 3회 미만이면 기본 기준, 정상 기록이 3회 이상 쌓이면 '개인 기준선'(평균 ± 표준편차)과 비교
+  정상 → '마지막 정상 확인 시각' 기록 / 재검 → 1분 뒤 다시 / 위험 → 119·115 안내 + 골든타임 표시
+
+실행
+  pip3 install pyserial
+  python3 golden_time.py            # 수신용 마이크로비트 자동 찾기
+  python3 golden_time.py COM5       # 포트 직접 지정
+마이크로비트 없이도 '시뮬레이션' 버튼으로 전체 흐름을 확인할 수 있다.
+"""
+import os
+import platform
+import queue
+import random
+import sqlite3
+import statistics
+import subprocess
+import sys
+import threading
+import time
+import tkinter as tk
+from datetime import datetime, timedelta
+
+try:
+    import serial
+    import serial.tools.list_ports
+except ImportError:
+    serial = None
+
+try:                         # 얼굴·말 자동 판단 (없으면 버튼으로 직접 판단)
+    import auto_check as ac
+except Exception:
+    ac = None
+try:
+    from PIL import Image, ImageTk
+except Exception:
+    Image = ImageTk = None
+
+# ───────── 설정 (오늘 실험 결과로 보정하기) ─────────
+PREP_DRIFT = 9          # 팔 처짐 검사 전 자세 잡는 시간(초) - 음성 안내 길이 포함
+PREP_TAP = 15           # 손가락 검사 전 준비 시간(초): 손마다 15초
+TEST_SEC = 10           # 각 검사 시간(초)
+GOLDEN_HOURS = 4.5      # 정맥 혈전용해 치료 가능 시간(마지막 정상 시각 기준)
+
+LIMIT_DROP = 10.0       # 한쪽 팔 처짐 각도(°)
+LIMIT_DIFF = 8.0        # 좌우 팔 처짐 차이(°)
+LIMIT_ROT = 15.0        # 손바닥 안쪽 회전 각도(°)
+LIMIT_TAP_RATIO = 0.70  # 느린 손 횟수 / 빠른 손 횟수
+BASELINE_MIN = 3        # 개인 기준선을 쓰기 위한 최소 정상 기록 수
+Z_LIMIT = 3.0           # 평소보다 표준편차 몇 배 이상 벗어나면 이상으로 볼지
+
+RECEIVER_ID = "990536020005283386510139"   # 우리 팀 수신용 마이크로비트 고유번호 앞부분 (DETAILS.TXT)
+DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "golden_time.db")
+HAND_KO = {"L": "왼손", "R": "오른손"}
+TAP_BTN = {"L": "B 버튼(화면 오른쪽 버튼)", "R": "A 버튼(화면 왼쪽 버튼)"}
+
+IS_WIN = platform.system() == "Windows"
+IS_MAC = platform.system() == "Darwin"
+FONT = "Malgun Gothic" if IS_WIN else ("Apple SD Gothic Neo" if IS_MAC else "NanumGothic")
+COLORS = {"idle": "#1e293b", "step": "#1d4ed8", "run": "#0f766e",
+          "ok": "#15803d", "warn": "#b45309", "bad": "#b91c1c"}
+G_W, G_H, G_RANGE = 600, 250, 30     # 그래프 크기, 세로축 범위(±30°)
+
+
+# ───────── 판정 로직 (화면과 분리해서 설명하기 쉽게) ─────────
+def angle_change(samples):
+    """samples: [(시간, 처짐각, 회전각)] → (처짐 변화, 회전 변화)
+    처음 1초 평균 자세와 마지막 1초 평균 자세의 차이 (순간 흔들림은 평균으로 걸러냄)"""
+    if len(samples) &lt; 6:
+        return None
+    start, end = samples[0][0], samples[-1][0]
+    # 처음 1초는 팔을 올리며 자세를 잡는 시간 → 1~2초 평균을 기준 자세로 사용
+    first = [s for s in samples if start + 1.0 &lt;= s[0] &lt; start + 2.0]
+    if len(first) &lt; 3:
+        first = [s for s in samples if s[0] &lt;= start + 1.0]
+    last = [s for s in samples if s[0] &gt;= end - 1.0]
+    dp = statistics.mean(s[1] for s in last) - statistics.mean(s[1] for s in first)
+    dr = statistics.mean(s[2] for s in last) - statistics.mean(s[2] for s in first)
+    return abs(dp), abs(dr)
+
+
+def derive(m):
+    """측정값 → 판정에 쓰는 4가지 지표"""
+    fast = max(m["tap_l"], m["tap_r"])
+    return {
+        "drop_max": max(m["drop_l"], m["drop_r"]),
+        "diff": abs(m["drop_l"] - m["drop_r"]),
+        "rot_max": max(m["rot_l"], m["rot_r"]),
+        "tap_ratio": min(m["tap_l"], m["tap_r"]) / fast if fast else 0.0,
+    }
+
+
+def judge(m, history):
+    """m: 오늘 측정값, history: 같은 사람의 과거 '정상' 기록 지표 목록
+    반환: (등급 '정상'/'재검'/'위험', 이유 목록, 지표)"""
+    d = derive(m)
+    weak = "왼" if m["drop_l"] &gt;= m["drop_r"] else "오른"
+    rot = "왼" if m["rot_l"] &gt;= m["rot_r"] else "오른"
+    slow = "왼" if m["tap_l"] &lt;= m["tap_r"] else "오른"
+    text = {
+        "drop_max": f"{weak}팔 처짐 {d['drop_max']:.0f}°",
+        "diff": f"좌우 팔 높이 차이 {d['diff']:.0f}°",
+        "rot_max": f"{rot}손 안쪽 회전 {d['rot_max']:.0f}°",
+        "tap_ratio": f"{slow}손 두드리기 느림 ({d['tap_ratio']:.0%})",
+    }
+    use_base = len(history) &gt;= BASELINE_MIN
+    flags = []
+
+    # 각도 지표: 클수록 나쁨
+    for key, limit in (("drop_max", LIMIT_DROP), ("diff", LIMIT_DIFF), ("rot_max", LIMIT_ROT)):
+        x = d[key]
+        if use_base:
+            vals = [h[key] for h in history]
+            mu, sd = statistics.mean(vals), max(statistics.pstdev(vals), 2.0)
+            bad = (x - mu) / sd &gt; Z_LIMIT or x &gt; limit * 2      # 평소보다 크게 벗어남 / 안전 상한
+        else:
+            bad = x &gt; limit
+        if bad:
+            flags.append(key)
+
+    # 두드리기 비율: 작을수록 나쁨
+    x = d["tap_ratio"]
+    if use_base:
+        vals = [h["tap_ratio"] for h in history]
+        mu, sd = statistics.mean(vals), max(statistics.pstdev(vals), 0.05)
+        bad = (mu - x) / sd &gt; Z_LIMIT or x &lt; 0.5
+    else:
+        bad = x &lt; LIMIT_TAP_RATIO
+    if bad:
+        flags.append("tap_ratio")
+
+    reasons = [text[k] for k in flags]
+    if not m["speech_ok"]:
+        reasons.insert(0, "말이 어눌함")
+    if not m["face_ok"]:
+        reasons.insert(0, "얼굴 한쪽 처짐")
+
+    if not m["face_ok"] or not m["speech_ok"] or len(flags) &gt;= 2:
+        level = "위험"
+    elif flags:
+        level = "재검"
+    else:
+        level = "정상"
+    d["mode"] = f"개인 기준선 적용 (정상 기록 {len(history)}회)" if use_base else "기본 기준 적용"
+    return level, reasons, d
+
+
+def fmt_td(td):
+    s = max(int(td.total_seconds()), 0)
+    return f"{s // 3600}시간 {s % 3600 // 60:02d}분 {s % 60:02d}초"
+
+
+class Speaker:
+    """운영체제 기본 음성으로 한국어를 읽는다 (추가 설치 필요 없음)"""
+
+    def __init__(self):
+        self.proc = None
+        self.mac_voice = None
+        if IS_MAC:
+            try:
+                voices = subprocess.run(["say", "-v", "?"], capture_output=True, text=True).stdout
+                if "Yuna" in voices:
+                    self.mac_voice = "Yuna"
+            except OSError:
+                pass
+
+    def say(self, text):
+        print("[음성]", text)
+        if self.proc and self.proc.poll() is None:
+            self.proc.terminate()
+        try:
+            if IS_MAC:
+                cmd = ["say"] + (["-v", self.mac_voice] if self.mac_voice else []) + [text]
+                self.proc = subprocess.Popen(cmd)
+            elif IS_WIN:
+                safe = text.replace("'", "''")
+                ps = ("Add-Type -AssemblyName System.Speech; "
+                      "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer; "
+                      "try { $s.SelectVoiceByHints([System.Speech.Synthesis.VoiceGender]::NotSet, "
+                      "[System.Speech.Synthesis.VoiceAge]::NotSet, 0, "
+                      "[System.Globalization.CultureInfo]'ko-KR') } catch {}; "
+                      f"$s.Speak('{safe}')")
+                self.proc = subprocess.Popen(["powershell", "-NoProfile", "-Command", ps],
+                                             creationflags=0x08000000)
+        except OSError:
+            pass
+
+    def wait(self, timeout=15):
+        """지금 읽고 있는 안내가 끝날 때까지 기다림 (녹음 전에 사용)"""
+        end = time.time() + timeout
+        while self.proc and self.proc.poll() is None and time.time() &lt; end:
+            time.sleep(0.1)
+
+    @staticmethod
+    def beep():
+        try:
+            if IS_MAC:
+                subprocess.Popen(["afplay", "/System/Library/Sounds/Ping.aiff"])
+            elif IS_WIN:
+                import winsound
+                winsound.Beep(1200, 250)
+        except Exception:
+            pass
+
+
+class App:
+    def __init__(self, root, port=None):
+        self.root = root
+        self.q = queue.Queue()
+        self.speaker = Speaker()
+        self.ser = None
+        self.sim = None            # None(실제 기기) / "normal" / "left_weak"
+        self.phase = None          # "DRIFT" / "TAP" / None
+        self.tap_hand = None
+        self.t0 = 0.0
+        self.samples = {"L": [], "R": []}
+        self.taps = {"L": 0, "R": 0}
+        self.drift = {}
+        self.answers = {}
+        self.q_key = None
+        self.running = False
+        self.last_yellow = None
+        self.alarm_job = None
+        self.alarm_reasons = []
+        self.detail = []
+        self.lines = {"L": None, "R": None}
+        self.uiq = queue.Queue()        # 다른 스레드(녹음·음성 인식) → 화면 작업
+        self.face = None                # 카메라 얼굴 측정기 (처음 쓸 때 준비)
+        self.face_ratio = self.speech_score = self.heard = None
+
+        self.db = sqlite3.connect(DB_FILE)
+        self.db.execute("""CREATE TABLE IF NOT EXISTS checks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT, user TEXT,
+            drop_l REAL, drop_r REAL, rot_l REAL, rot_r REAL, tap_l INTEGER, tap_r INTEGER,
+            face_ok INTEGER, speech_ok INTEGER, result TEXT, reasons TEXT)""")
+        for col, typ in (("face_ratio", "REAL"), ("speech_score", "REAL"), ("heard", "TEXT")):
+            try:
+                self.db.execute(f"ALTER TABLE checks ADD COLUMN {col} {typ}")
+            except sqlite3.OperationalError:
+                pass                    # 이미 있는 열
+        self.db.commit()
+
+        self.user = tk.StringVar(value="할머니")
+        auto_ok = bool(ac and ImageTk and (ac.FACE_READY or ac.SPEECH_READY))
+        self.auto_var = tk.BooleanVar(value=auto_ok)
+        self.build_ui()
+        self.connect(port)
+        self.idle()
+        self.refresh()
+        self.root.after(30, self.poll)
+
+    # ───────── 화면 ─────────
+    def build_ui(self):
+        r = self.root
+        r.title("골든타임 지킴이 - 1분 뇌졸중 자가 체크")
+        r.geometry("1220x780")
+        r.configure(bg="white")
+
+        self.panel = tk.Frame(r, bg=COLORS["idle"], height=240)
+        self.panel.pack(fill="x")
+        self.panel.pack_propagate(False)
+        self.lbl_main = tk.Label(self.panel, font=(FONT, 40, "bold"), fg="white", bg=COLORS["idle"])
+        self.lbl_main.pack(pady=(40, 8))
+        self.lbl_sub = tk.Label(self.panel, font=(FONT, 21), fg="white", bg=COLORS["idle"],
+                                wraplength=1150, justify="center")
+        self.lbl_sub.pack()
+
+        bottom = tk.Frame(r, bg="#e2e8f0")
+        bottom.pack(fill="x", side="bottom")
+        self.btn_start = tk.Button(bottom, text="▶ 체크 시작", font=(FONT, 16, "bold"),
+                                   command=lambda: self.start_check(None))
+        self.btn_start.pack(side="left", padx=10, pady=8)
+        tk.Button(bottom, text="시뮬레이션: 정상", font=(FONT, 12),
+                  command=lambda: self.start_check("normal")).pack(side="left", padx=3)
+        tk.Button(bottom, text="시뮬레이션: 왼팔 마비", font=(FONT, 12),
+                  command=lambda: self.start_check("left_weak")).pack(side="left", padx=3)
+        tk.Button(bottom, text="경보 해제", font=(FONT, 12),
+                  command=self.clear_alarm).pack(side="left", padx=12)
+        tk.Button(bottom, text="이 사용자 기록 초기화", font=(FONT, 12),
+                  command=self.reset_user).pack(side="left", padx=3)
+        tk.Checkbutton(bottom, text="얼굴·말 자동 판단", variable=self.auto_var, bg="#e2e8f0",
+                       font=(FONT, 12)).pack(side="left", padx=10)
+        self.lbl_conn = tk.Label(bottom, bg="#e2e8f0", font=(FONT, 11))
+        self.lbl_conn.pack(side="right", padx=10)
+
+        body = tk.Frame(r, bg="white")
+        body.pack(fill="both", expand=True, padx=20, pady=12)
+
+        left = tk.Frame(body, bg="white")
+        left.pack(side="left", fill="both", expand=True)
+        tk.Label(left, text="팔 처짐 실시간 그래프 (처음 자세 대비 각도 변화)",
+                 font=(FONT, 14, "bold"), bg="white").pack(anchor="w")
+        self.canvas = tk.Canvas(left, width=G_W, height=G_H, bg="#f8fafc", highlightthickness=0)
+        self.canvas.pack(anchor="w", pady=4)
+        self.cam_label = tk.Label(left, bg="black")     # 얼굴 확인 때만 그래프 자리에 표시
+        self.lbl_detail = tk.Label(left, font=(FONT, 14), bg="white", justify="left", anchor="w")
+        self.lbl_detail.pack(fill="x")
+        qf = tk.Frame(left, bg="white")
+        qf.pack(anchor="w", pady=8)
+        self.btn_yes = tk.Button(qf, text="정상이에요", font=(FONT, 16), width=12, state="disabled",
+                                 command=lambda: self.answer(True))
+        self.btn_no = tk.Button(qf, text="이상해요", font=(FONT, 16), width=12, state="disabled",
+                                command=lambda: self.answer(False))
+        self.btn_yes.pack(side="left", padx=4)
+        self.btn_no.pack(side="left", padx=4)
+
+        right = tk.Frame(body, bg="white")
+        right.pack(side="right", fill="y")
+        row = tk.Frame(right, bg="white")
+        row.pack(anchor="w")
+        tk.Label(row, text="사용자:", font=(FONT, 14), bg="white").pack(side="left")
+        ent = tk.Entry(row, textvariable=self.user, font=(FONT, 14), width=12)
+        ent.pack(side="left", padx=4)
+        ent.bind("&lt;Return&gt;", lambda e: self.refresh())
+        ent.bind("&lt;FocusOut&gt;", lambda e: self.refresh())
+        tk.Label(right, text="마지막 정상 확인 시각", font=(FONT, 15, "bold"), bg="white").pack(anchor="w", pady=(12, 0))
+        self.lbl_lkw = tk.Label(right, font=(FONT, 26, "bold"), fg="#15803d", bg="white")
+        self.lbl_lkw.pack(anchor="w")
+        tk.Label(right, text="체크 기록 (DB)", font=(FONT, 15, "bold"), bg="white").pack(anchor="w", pady=(12, 0))
+        self.logbox = tk.Listbox(right, width=46, height=12, font=(FONT, 12))
+        self.logbox.pack()
+        self.draw_axes()
+
+    def gx(self, t):
+        return 45 + min(t, TEST_SEC) / TEST_SEC * (G_W - 60)
+
+    def gy(self, v):
+        v = max(-G_RANGE, min(G_RANGE, v))
+        return G_H / 2 - v / G_RANGE * (G_H / 2 - 12)
+
+    def draw_axes(self):
+        c = self.canvas
+        c.delete("all")
+        c.create_line(45, self.gy(0), G_W - 15, self.gy(0), fill="#94a3b8")
+        for v in (LIMIT_DROP, -LIMIT_DROP):
+            c.create_line(45, self.gy(v), G_W - 15, self.gy(v), fill="#ef4444", dash=(4, 3))
+            c.create_text(40, self.gy(v), text=f"{v:+.0f}°", anchor="e", fill="#ef4444", font=(FONT, 9))
+        c.create_text(40, self.gy(0), text="0°", anchor="e", fill="#64748b", font=(FONT, 9))
+        c.create_text(G_W - 15, G_H - 6, text=f"{TEST_SEC}초", anchor="se", fill="#64748b", font=(FONT, 9))
+        c.create_text(G_W - 15, 10, text="━ 왼손", anchor="ne", fill="#2563eb", font=(FONT, 11, "bold"))
+        c.create_text(G_W - 15, 28, text="━ 오른손", anchor="ne", fill="#ea580c", font=(FONT, 11, "bold"))
+        self.lines = {"L": None, "R": None}
+
+    def plot(self, h):
+        s = self.samples[h]
+        if len(s) &lt; 2:
+            return
+        base = s[0][1]
+        pts = []
+        for t, p, _ in s:
+            pts += [self.gx(t), self.gy(p - base)]
+        if self.lines[h] is None:
+            color = "#2563eb" if h == "L" else "#ea580c"
+            self.lines[h] = self.canvas.create_line(*pts, fill=color, width=3)
+        else:
+            self.canvas.coords(self.lines[h], *pts)
+
+    def show(self, kind, main, sub=""):
+        for w in (self.panel, self.lbl_main, self.lbl_sub):
+            w.config(bg=COLORS[kind])
+        self.lbl_main.config(text=main)
+        self.lbl_sub.config(text=sub)
+
+    def idle(self):
+        self.show("idle", "골든타임 지킴이",
+                  "매일 아침·저녁 1분 체크로 '마지막 정상 시각'을 기록하세요  →  [체크 시작]")
+
+    def refresh(self):
+        lkw = self.last_normal()
+        self.lbl_lkw.config(text=lkw.strftime("%m/%d  %H:%M") if lkw else "기록 없음")
+        self.logbox.delete(0, "end")
+        for ts, res, dl, dr, tl, tr in self.db.execute(
+                "SELECT ts, result, drop_l, drop_r, tap_l, tap_r FROM checks WHERE user=? "
+                "ORDER BY id DESC LIMIT 12", (self.uname(),)):
+            self.logbox.insert("end", f"{ts[5:16]}  {res}   처짐 왼{dl:.0f}° 오른{dr:.0f}°   두드리기 왼{tl} 오른{tr}")
+
+    # ───────── 검사 진행 ─────────
+    def start_check(self, sim):
+        if self.running:
+            return
+        if sim is None and self.ser is None:
+            self.show("warn", "마이크로비트가 연결되지 않았어요",
+                      "수신용 마이크로비트를 USB로 꽂고 프로그램을 다시 켜거나, 시뮬레이션으로 체험해 보세요")
+            return
+        self.clear_alarm(silent=True)
+        self.running, self.sim = True, sim
+        self.samples, self.taps, self.answers, self.detail = {"L": [], "R": []}, {"L": 0, "R": 0}, {}, []
+        self.face_ratio = self.speech_score = self.heard = None
+        self.q_key = None
+        self.hide_cam()
+        self.draw_axes()
+        self.lbl_detail.config(text="")
+        self.btn_start.config(state="disabled")
+        self.show("step", "1단계  팔 처짐 검사",
+                  "양손에 기기를 쥐고, 손바닥을 위로 한 채 팔을 앞으로 쭉 뻗으세요. 그리고 눈을 감으세요.")
+        self.speaker.say("팔 처짐 검사입니다. 양손에 기기를 쥐고, 손바닥을 위로 한 채 팔을 앞으로 쭉 뻗으세요. "
+                         "그리고 눈을 감으세요.")
+        self.countdown(PREP_DRIFT, "1단계  팔 처짐 검사", self.drift_run)
+
+    def countdown(self, n, title, then):
+        if not self.running:
+            return
+        if n &lt;= 0:
+            then()
+            return
+        self.lbl_main.config(text=f"{title}   {n}")
+        self.root.after(1000, lambda: self.countdown(n - 1, title, then))
+
+    def begin_phase(self, phase, hand, cmd):
+        self.phase, self.tap_hand, self.t0 = phase, hand, time.time()
+        self.send(cmd)
+        if self.sim:
+            self.root.after(100, self.sim_tick)
+
+    def end_phase(self):
+        self.phase = None
+        self.send("STOP")
+
+    def drift_run(self):
+        self.show("run", f"그대로 버티세요 ({TEST_SEC}초)", "눈을 감고, 팔을 움직이지 마세요")
+        self.speaker.say("시작. 그대로 버티세요.")
+        self.begin_phase("DRIFT", None, "DRIFT")
+        self.root.after(TEST_SEC * 1000, self.drift_end)
+
+    def drift_end(self):
+        self.end_phase()
+        res = {h: angle_change(self.samples[h]) for h in "LR"}
+        missing = [HAND_KO[h] for h in "LR" if res[h] is None]
+        if missing:
+            self.abort(f"{', '.join(missing)} 기기 신호가 없어요", "손 마이크로비트 전원과 라디오 그룹(23)을 확인하세요")
+            return
+        self.speaker.say("끝. 팔을 내리세요.")
+        self.drift = res
+        self.detail.append(f"팔 처짐   왼 {res['L'][0]:.1f}°  /  오른 {res['R'][0]:.1f}°")
+        self.detail.append(f"손 회전   왼 {res['L'][1]:.1f}°  /  오른 {res['R'][1]:.1f}°")
+        self.lbl_detail.config(text="\n".join(self.detail))
+        self.root.after(2500, lambda: self.tap_prep("R"))
+
+    def tap_prep(self, hand):
+        if not self.running:
+            return
+        title = f"2단계  {HAND_KO[hand]} 두드리기"
+        self.show("step", title, f"{HAND_KO[hand]}에 기기를 쥐고, 엄지로 {TAP_BTN[hand]}을 최대한 빨리 누르세요 ({TEST_SEC}초)")
+        self.speaker.say(f"{HAND_KO[hand]} 검사입니다. 엄지로 {TAP_BTN[hand][:4]}을 최대한 빨리 누르세요.")
+        self.countdown(PREP_TAP, title, lambda: self.tap_run(hand))
+
+    def tap_run(self, hand):
+        self.show("run", f"{HAND_KO[hand]}  0회", "계속 빠르게 누르세요!")
+        self.speaker.say("시작!")
+        self.begin_phase("TAP", hand, f"TAP_{hand}")
+        self.root.after(TEST_SEC * 1000, lambda: self.tap_end(hand))
+
+    def tap_end(self, hand):
+        self.end_phase()
+        if hand == "R":
+            self.root.after(1500, lambda: self.tap_prep("L"))
+            return
+        if max(self.taps.values()) == 0:
+            self.abort("버튼 입력이 없어요", "왼손 L은 B 버튼, 오른손 R은 A 버튼을 누르는지, 전원이 켜져 있는지 확인하세요")
+            return
+        self.detail.append(f"두드리기  왼 {self.taps['L']}회  /  오른 {self.taps['R']}회")
+        self.lbl_detail.config(text="\n".join(self.detail))
+        self.root.after(1500, self.ask_face)
+
+    def ask(self, key, title, sub, voice):
+        self.q_key = key
+        self.show("step", title, sub)
+        self.speaker.say(voice)
+        self.btn_yes.config(state="normal")
+        self.btn_no.config(state="normal")
+        if self.sim:                       # 시뮬레이션에서는 자동으로 '정상' 응답
+            self.root.after(2500, lambda: self.answer(True, key))
+
+    def auto_on(self, kind):
+        if self.sim or not self.auto_var.get() or ac is None:
+            return False
+        return (ac.FACE_READY and ImageTk is not None) if kind == "face" else ac.SPEECH_READY
+
+    def note(self, line):
+        self.detail.append(line)
+        self.lbl_detail.config(text="\n".join(self.detail))
+
+    # ── 3단계 얼굴 ──
+    def ask_face(self):
+        if self.auto_on("face"):
+            self.face_auto()
+        else:
+            self.ask_face_manual()
+
+    def ask_face_manual(self):
+        self.ask("face", "3단계  얼굴 확인",
+                 "거울을 보고 '이~' 하고 웃어 보세요. 입꼬리가 한쪽만 처지나요?  (본인 또는 가족이 응답)",
+                 "얼굴 확인입니다. 거울을 보고 이 하고 웃어 보세요. 입꼬리가 한쪽만 처지나요?")
+
+    def face_auto(self, retry=False, tries=0):
+        if not self.running:
+            return
+        perm = ac.camera_permission()
+        if perm == "ask":                       # 아직 안 물어봤으면 맥 허용 창을 띄우고 답을 기다림
+            if tries == 0:
+                ac.request_camera_permission()
+                self.show("warn", "카메라 허용이 필요해요", "맥에 뜬 창에서 [허용]을 눌러 주세요")
+                self.speaker.say("카메라 사용을 허용해 주세요.")
+            if tries &lt; 30:
+                self.lbl_main.config(text=f"카메라 허용이 필요해요   {30 - tries}")
+                self.root.after(1000, lambda: self.face_auto(retry, tries + 1))
+                return
+        elif perm == "denied":
+            self.note("얼굴: 카메라 권한 꺼짐 (시스템 설정 → 개인정보 보호 및 보안 → 카메라) → 직접 판단")
+            self.show("warn", "카메라 권한이 꺼져 있어요",
+                      "시스템 설정 → 개인정보 보호 및 보안 → 카메라 → '터미널' 켜기 → 프로그램 다시 실행")
+            self.speaker.say("카메라 권한이 꺼져 있어요. 이번에는 직접 판단으로 할게요.")
+            self.root.after(3500, self.ask_face_manual)
+            return
+        try:
+            if self.face is None:
+                self.face = ac.FaceChecker()
+            self.face.close()
+            opened = self.face.open()
+        except Exception as e:
+            opened, self.face = False, None
+            print("[카메라 오류]", e)
+        if not opened:
+            if tries &lt; 15:      # 맥의 카메라 허용 창을 누를 시간을 줌 (15초)
+                if tries == 0:
+                    self.show("warn", "카메라 허용이 필요해요",
+                              "맥에 뜬 창에서 [허용]을 누르세요.\n창이 없으면: 시스템 설정 → 개인정보 보호 및 보안 → 카메라 → '터미널' 켜기")
+                    self.speaker.say("카메라 사용을 허용해 주세요.")
+                self.lbl_main.config(text=f"카메라 허용이 필요해요   {15 - tries}")
+                self.root.after(1000, lambda: self.face_auto(retry, tries + 1))
+                return
+            self.note("얼굴: 카메라 권한이 없어 직접 판단으로 전환")
+            self.ask_face_manual()
+            return
+        self.q_key = "face_auto"
+        self.face_data = {"neutral": [], "smile": []}
+        self.canvas.pack_forget()
+        self.cam_label.pack(anchor="w", pady=4, before=self.lbl_detail)
+        self.face_phase, self.phase_t0, self.face_retry = "prep", time.time(), retry
+        cam = getattr(self.face, "name", "") or "기본 카메라"
+        self.show("step", "3단계  얼굴 확인 (자동)", f"카메라를 정면으로 보고 가만히 계세요\n(사용 중: {cam})")
+        self.speaker.say("얼굴 확인입니다. 카메라를 정면으로 보고 가만히 계세요.")
+        self.cam_tick()
+
+    def cam_tick(self):
+        if self.q_key != "face_auto" or not self.running:
+            return
+        img, m = self.face.read()
+        if img is not None:
+            pic = Image.fromarray(img)
+            pic.thumbnail((G_W, 340))
+            self.cam_photo = ImageTk.PhotoImage(pic)
+            self.cam_label.config(image=self.cam_photo)
+        t = time.time() - self.phase_t0
+        ph = self.face_phase
+        if m and ph in ("neutral", "smile"):
+            self.face_data[ph].append(m)
+        if ph == "prep" and t &gt; 3.5:
+            self.face_phase, self.phase_t0 = "neutral", time.time()
+            self.show("run", "그대로 가만히", "평소 얼굴을 재는 중 (2초)")
+        elif ph == "neutral" and t &gt; 2.5:
+            self.face_phase, self.phase_t0 = "smile", time.time()
+            self.show("run", "'이~' 하고 크게 웃으세요!", "입꼬리를 양쪽으로 쭉 올려 주세요 (3초)")
+            self.speaker.say("이 하고 크게 웃으세요.")
+        elif ph == "smile" and t &gt; 3.5:
+            self.face_done()
+            return
+        self.root.after(40, self.cam_tick)
+
+    def hide_cam(self):
+        if self.face:
+            self.face.close()
+        self.cam_label.pack_forget()
+        self.canvas.pack(anchor="w", pady=4, before=self.lbl_detail)
+
+    def face_done(self):
+        self.hide_cam()
+        r = ac.judge_face(self.face_data["neutral"], self.face_data["smile"])
+        if r["ok"] is None:
+            if not self.face_retry:
+                self.speaker.say(f"{r['reason']}. 한 번 더 해 볼게요.")
+                self.show("warn", r["reason"], "한 번 더 해 볼게요")
+                self.root.after(2500, lambda: self.face_auto(retry=True))
+            else:
+                self.note(f"얼굴: {r['reason']} → 직접 판단으로 전환")
+                self.ask_face_manual()
+            return
+        self.q_key = None
+        self.face_ratio = r["ratio"]
+        self.answers["face"] = r["ok"]
+        self.note(f"얼굴(자동)  {r['reason']}")
+        if r["ok"]:
+            self.show("ok", "얼굴 대칭 정상", r["reason"])
+            self.speaker.say("얼굴은 정상입니다.")
+        else:
+            self.show("warn", "얼굴 한쪽이 처져 보여요", r["reason"])
+            self.speaker.say(f"{r['weak']} 입꼬리가 덜 올라갔어요.")
+        self.root.after(2200, self.ask_speech)
+
+    # ── 4단계 말 ──
+    def ask_speech(self):
+        if not self.running:
+            return
+        if self.auto_on("speech"):
+            self.speech_auto()
+        else:
+            self.ask_speech_manual()
+
+    def ask_speech_manual(self):
+        self.ask("speech", "4단계  말 확인",
+                 "따라 읽어 보세요: “오늘은 날씨가 맑습니다.”  발음이 어눌하거나 말이 잘 안 나오나요?",
+                 "말 확인입니다. 따라 읽어 보세요. 오늘은 날씨가 맑습니다.")
+
+    def speech_auto(self, retry=False):
+        self.q_key = "speech_auto"
+        self.sentence = ac.pick_sentence()
+        self.show("step", "4단계  말 확인 (자동)", f"‘삐’ 소리가 나면 따라 읽어 주세요\n“{self.sentence}.”")
+        self.speaker.say(f"말 확인입니다. 삐 소리가 나면 따라 읽어 주세요. {self.sentence}.")
+        threading.Thread(target=self.speech_worker, args=(retry,), daemon=True).start()
+
+    def speech_worker(self, retry):
+        """별도 스레드: 안내가 끝나면 녹음 → 음성 인식 (화면 작업은 uiq로 넘김)"""
+        self.speaker.wait(15)
+        time.sleep(0.3)
+        self.speaker.beep()
+        self.uiq.put(lambda: self.show("run", "지금 읽어 주세요", f"“{self.sentence}.”   (5초 녹음 중)"))
+        heard, rms, err = "", 0.0, None
+        try:
+            raw, rms = ac.record()
+            self.uiq.put(lambda: self.show("step", "듣고 있어요…", "발음을 분석하는 중"))
+            heard = ac.recognize(raw) if rms &gt; 120 else ""
+        except Exception as e:
+            err = str(e)
+        self.uiq.put(lambda: self.speech_done(heard, rms, err, retry))
+
+    def speech_done(self, heard, rms, err, retry):
+        if self.q_key != "speech_auto" or not self.running:
+            return
+        if err:
+            print("[음성 인식 오류]", err)
+            self.note("말: 마이크·인터넷 문제로 직접 판단으로 전환")
+            self.ask_speech_manual()
+            return
+        score = ac.speech_score(self.sentence, heard)
+        if score &lt; ac.SPEECH_SCORE_MIN and not retry:      # 한 번은 다시 기회
+            msg = "잘 안 들렸어요" if not heard else "한 번 더 또박또박 읽어 주세요"
+            self.show("warn", msg, f"들린 말: “{heard or '(없음)'}”")
+            self.speaker.say(f"{msg}. 다른 문장으로 한 번 더 해 볼게요.")
+            self.root.after(3500, lambda: self.speech_auto(retry=True))
+            return
+        ok = score &gt;= ac.SPEECH_SCORE_MIN
+        self.q_key = None
+        self.speech_score, self.heard = score, heard
+        self.answers["speech"] = ok
+        self.note(f"말(자동)  발음 정확도 {score:.0%}  ·  들린 말: “{heard or '(없음)'}”")
+        if ok:
+            self.show("ok", f"발음 정확도 {score:.0%}", f"들린 말: “{heard}”")
+            self.speaker.say("말도 정상입니다.")
+        else:
+            self.show("warn", f"발음 정확도 {score:.0%}", f"들린 말: “{heard or '(없음)'}”  → 말이 어눌하게 들려요")
+            self.speaker.say("발음이 어눌하게 들려요.")
+        self.root.after(2000, self.finish)
+
+    def answer(self, ok, key=None):
+        if not self.running or self.q_key is None or (key and key != self.q_key):
+            return
+        done = self.q_key
+        self.answers[done] = ok
+        self.q_key = None
+        self.btn_yes.config(state="disabled")
+        self.btn_no.config(state="disabled")
+        if done == "face":
+            self.ask_speech()
+        else:
+            self.finish()
+
+    def finish(self):
+        self.running = False
+        self.btn_start.config(state="normal")
+        m = {"drop_l": self.drift["L"][0], "drop_r": self.drift["R"][0],
+             "rot_l": self.drift["L"][1], "rot_r": self.drift["R"][1],
+             "tap_l": self.taps["L"], "tap_r": self.taps["R"],
+             "face_ok": self.answers.get("face", True), "speech_ok": self.answers.get("speech", True)}
+        level, reasons, d = judge(m, self.baseline_history())
+
+        now = time.time()
+        if level == "재검" and self.last_yellow and now - self.last_yellow &lt; 15 * 60:
+            level = "위험"
+            reasons.append("재검에서도 이상 신호")
+        self.last_yellow = now if level == "재검" else None
+
+        self.db.execute(
+            "INSERT INTO checks (ts, user, drop_l, drop_r, rot_l, rot_r, tap_l, tap_r, face_ok, speech_ok, "
+            "result, reasons, face_ratio, speech_score, heard) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.uname(), m["drop_l"], m["drop_r"],
+             m["rot_l"], m["rot_r"], m["tap_l"], m["tap_r"], int(m["face_ok"]), int(m["speech_ok"]),
+             level, " / ".join(reasons), self.face_ratio, self.speech_score, self.heard))
+        self.db.commit()
+        self.detail.append(f"판정 기준: {d['mode']}")
+        self.lbl_detail.config(text="\n".join(self.detail))
+        self.refresh()
+
+        if level == "정상":
+            self.show("ok", "정상입니다 ✔",
+                      f"마지막 정상 확인 시각이 {datetime.now():%H:%M}로 기록되었어요. 오늘도 건강하세요!")
+            self.speaker.say("정상입니다. 마지막 정상 시각이 기록되었어요.")
+            self.send("OK")
+        elif level == "재검":
+            self.show("warn", "재검이 필요해요",
+                      f"{' · '.join(reasons)}\n1분 쉬고 다시 체크하세요. 다시 이상이 나오면 바로 병원에 연락하세요.")
+            self.speaker.say("이상 신호가 하나 있어요. 1분 쉬고 다시 체크해 주세요.")
+            self.send("WARN")
+        else:
+            self.alarm_reasons = reasons
+            self.send("ALARM")
+            self.speaker.say("뇌졸중이 의심됩니다. 지금 바로 119, 베트남에서는 115에 전화하세요.")
+            self.alarm_tick()
+
+    def alarm_tick(self):
+        lkw = self.last_normal()
+        if lkw:
+            elapsed = datetime.now() - lkw
+            remain = timedelta(hours=GOLDEN_HOURS) - elapsed
+            golden = (f"골든타임 남은 시간(추정) {fmt_td(remain)}" if remain.total_seconds() &gt; 0
+                      else "추정 골든타임이 지났어도 지금 바로 병원으로!")
+            t = f"마지막 정상 확인 {lkw:%H:%M} ({fmt_td(elapsed)} 전)  ·  {golden}"
+        else:
+            t = "마지막 정상 기록이 없어요 → 증상을 처음 본 시각을 의료진에게 꼭 알리세요"
+        self.show("bad", "뇌졸중 의심!  지금 119 / 115 전화",
+                  f"{' · '.join(self.alarm_reasons)}\n{t}")
+        self.alarm_job = self.root.after(1000, self.alarm_tick)
+
+    def clear_alarm(self, silent=False):
+        if self.alarm_job:
+            self.root.after_cancel(self.alarm_job)
+            self.alarm_job = None
+        if not silent and not self.running:
+            self.idle()
+
+    def abort(self, main, sub):
+        self.end_phase()
+        self.running = False
+        self.q_key = None
+        self.hide_cam()
+        self.btn_start.config(state="normal")
+        self.show("warn", main, sub)
+        self.speaker.say(main)
+
+    def reset_user(self):
+        self.db.execute("DELETE FROM checks WHERE user=?", (self.uname(),))
+        self.db.commit()
+        self.last_yellow = None
+        self.clear_alarm()
+        self.refresh()
+
+    # ───────── DB 도우미 ─────────
+    def uname(self):
+        return self.user.get().strip() or "사용자"
+
+    def last_normal(self):
+        row = self.db.execute("SELECT ts FROM checks WHERE user=? AND result='정상' ORDER BY id DESC LIMIT 1",
+                              (self.uname(),)).fetchone()
+        return datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S") if row else None
+
+    def baseline_history(self):
+        rows = self.db.execute(
+            "SELECT drop_l, drop_r, rot_l, rot_r, tap_l, tap_r FROM checks WHERE user=? AND result='정상' "
+            "ORDER BY id DESC LIMIT 14", (self.uname(),)).fetchall()
+        keys = ("drop_l", "drop_r", "rot_l", "rot_r", "tap_l", "tap_r")
+        return [derive(dict(zip(keys, row))) for row in rows]
+
+    # ───────── 마이크로비트 통신 ─────────
+    def connect(self, port):
+        if serial is None:
+            self.lbl_conn.config(text="pyserial 없음 → 시뮬레이션만 가능")
+            return
+        if port is None:
+            keys = ("micro", "mbed", "daplink", "cmsis", "usbmodem")
+            found = [p for p in serial.tools.list_ports.comports()
+                     if any(k in f"{p.device} {p.description}".lower() for k in keys)]
+            # 마이크로비트가 여러 대 꽂혀 있으면 수신용 고유번호를 가진 것을 먼저 고른다
+            mine = [p for p in found if (p.serial_number or "").upper().startswith(RECEIVER_ID)]
+            if mine:
+                port = mine[0].device
+            elif len(found) == 1:
+                port = found[0].device
+            elif len(found) &gt; 1:
+                self.lbl_conn.config(text="수신용 마이크로비트가 안 보여요 → '수신' 마이크로비트를 USB에 꽂고 다시 실행")
+                return
+        if port is None:
+            self.lbl_conn.config(text="마이크로비트 없음 → 시뮬레이션만 가능")
+            return
+        try:
+            self.ser = serial.Serial(port, 115200, timeout=1)
+        except Exception as e:
+            self.lbl_conn.config(text=f"{port} 연결 실패: {str(e)[:40]}")
+            return
+        self.lbl_conn.config(text=f"마이크로비트 연결됨: {port}")
+        threading.Thread(target=self.reader, daemon=True).start()
+
+    def reader(self):
+        while True:
+            try:
+                line = self.ser.readline().decode("utf-8", "ignore").strip()
+            except Exception:
+                self.q.put("__LOST__")
+                return
+            if line:
+                self.q.put(line)
+
+    def send(self, cmd):
+        """라디오 신호가 가끔 빠지므로 손 기기에 가는 명령은 두 번 보낸다 (두 번 받아도 결과는 같음)"""
+        if self.ser and not self.sim:
+            try:
+                times = 2 if cmd in ("DRIFT", "STOP", "TAP_L", "TAP_R") else 1
+                for i in range(times):
+                    self.ser.write((cmd + "\n").encode())
+                    if i + 1 &lt; times:
+                        time.sleep(0.03)
+            except Exception:
+                pass
+
+    def poll(self):
+        while not self.q.empty():
+            self.handle(self.q.get())
+        while not self.uiq.empty():
+            self.uiq.get()()
+        self.root.after(30, self.poll)
+
+    def handle(self, line):
+        if line == "__LOST__":
+            self.ser = None
+            self.lbl_conn.config(text="마이크로비트 연결 끊김 → 프로그램 다시 실행")
+            return
+        p = line.split(",")
+        try:
+            if p[0] == "D" and len(p) == 4 and self.phase == "DRIFT" and p[1] in self.samples:
+                self.samples[p[1]].append((time.time() - self.t0, float(p[2]), float(p[3])))
+                self.plot(p[1])
+            elif p[0] == "T" and len(p) == 3 and self.phase == "TAP" and p[1] == self.tap_hand:
+                self.taps[p[1]] = int(p[2])
+                self.lbl_main.config(text=f"{HAND_KO[p[1]]}  {p[2]}회")
+        except ValueError:
+            pass
+
+    # ───────── 시뮬레이션 (기기 없이 시연/테스트) ─────────
+    def sim_tick(self):
+        if not self.sim or self.phase is None:
+            return
+        t = time.time() - self.t0
+        k = min(t / TEST_SEC, 1.0)
+        weak = self.sim == "left_weak"
+        if self.phase == "DRIFT":
+            for h in "LR":
+                if weak and h == "L":
+                    pitch, roll = -20 * k ** 1.3, 24 * k          # 왼팔이 점점 처지고 안쪽으로 돌아감
+                else:
+                    pitch, roll = -1.5 * k, 1.0 * k
+                pitch += random.gauss(0, 0.7) + (3 if h == "L" else -2)
+                roll += random.gauss(0, 0.7)
+                self.q.put(f"D,{h},{pitch:.1f},{roll:.1f}")
+        elif self.phase == "TAP":
+            h = self.tap_hand
+            rate = 2.6 if (weak and h == "L") else (5.6 if h == "R" else 5.0)
+            self.q.put(f"T,{h},{int(t * rate)}")
+        self.root.after(100, self.sim_tick)
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    App(root, sys.argv[1] if len(sys.argv) &gt; 1 else None)
+    root.mainloop()</pre></details>
+    </article><article class="file">
+      <div class="fhead"><span class="fname">auto_check.py</span><span class="chip">Python · <b>237</b>줄</span></div>
+      <p class="role">파이썬 버전의 얼굴·말 자동 판단 모듈입니다.</p>
+      <ul class="funcs"><li><code>FaceChecker · judge_face()</code> MediaPipe Face Mesh로 입꼬리 대칭 측정</li><li><code>builtin_camera() · builtin_mic()</code> 아이폰 연속성 장치 말고 맥북 카메라·마이크 선택</li><li><code>record() · recognize() · speech_score()</code> 녹음 → 음성 인식 → 자모 유사도</li></ul>
+      <details class="code"><summary>전체 코드 보기</summary>
+        <div class="codebar"><button class="copy" data-target="code-python-1">복사</button></div>
+        <pre id="code-python-1"># -*- coding: utf-8 -*-
+"""
+골든타임 지킴이 - 얼굴·말 자동 판단 모듈 (혼자 사는 사람을 위해)
+
+얼굴 (카메라, 노트북 안에서만 처리)
+  1) 가만히 있는 얼굴과 2) '이~' 하고 웃는 얼굴을 비교해서
+  왼쪽/오른쪽 입꼬리가 각각 얼마나 올라갔는지 잰다.
+  한쪽만 덜 올라가면(좌우 비율이 낮으면) '얼굴 한쪽 처짐'으로 본다.
+  - MediaPipe Face Mesh: 얼굴 위 468개 점을 찾아 주는 AI 모델
+  - 눈꼬리 두 점을 잇는 선을 기준으로 삼아 고개가 기울어도 높이를 공정하게 비교
+  - 눈 사이 거리로 나눠서 카메라와의 거리가 달라도 같은 기준으로 비교
+
+말 (마이크, 음성 인식은 Google 음성 인식 서버 사용 → 인터넷 필요)
+  화면의 문장을 따라 읽으면 음성 인식 결과와 원래 문장을 자모(ㅇ,ㅗ,ㄴ...) 단위로 비교해
+  발음 정확도(%)를 낸다. 정확도가 낮으면 '말이 어눌함'으로 본다.
+"""
+import difflib
+import math
+import random
+import unicodedata
+
+try:
+    import cv2
+    import numpy as np
+    import mediapipe as mp
+    FACE_READY, FACE_ERROR = True, ""
+except Exception as e:          # 라이브러리가 없으면 수동 판단으로 대체
+    FACE_READY, FACE_ERROR = False, str(e)
+
+try:                     # 맥: 카메라 목록·권한 확인 (아이폰 연속성 카메라 말고 맥북 카메라 고르기)
+    import AVFoundation as AV
+except Exception:
+    AV = None
+
+try:
+    import io
+    import numpy as np
+    import sounddevice as sd
+    import soundfile as sf
+    import speech_recognition as sr
+
+    def _flac_data(self, convert_rate=None, convert_width=None):
+        """음성 인식 라이브러리에 딸린 flac 변환 프로그램이 애플 실리콘 맥에서 안 돌아서 직접 변환"""
+        raw = self.get_raw_data(convert_rate, 2)
+        buf = io.BytesIO()
+        sf.write(buf, np.frombuffer(raw, dtype=np.int16), convert_rate or self.sample_rate,
+                 format="FLAC", subtype="PCM_16")
+        return buf.getvalue()
+
+    sr.AudioData.get_flac_data = _flac_data
+    SPEECH_READY, SPEECH_ERROR = True, ""
+except Exception as e:
+    SPEECH_READY, SPEECH_ERROR = False, str(e)
+
+# ───────── 기준값 (오늘 실험으로 보정하기) ─────────
+FACE_RATIO_MIN = 0.55     # 약한 쪽 입꼬리 상승 / 강한 쪽 입꼬리 상승 이 값보다 작으면 이상
+FACE_MIN_LIFT = 0.025     # 이보다 덜 올라가면 '웃음이 감지되지 않음' (눈 사이 거리 대비)
+SPEECH_SCORE_MIN = 0.75   # 발음 정확도 75% 미만이면 이상
+RECORD_SEC = 5.0          # 녹음 시간
+RATE = 16000
+
+SENTENCES = [
+    "오늘은 날씨가 맑습니다",
+    "나는 아침마다 물을 마십니다",
+    "우리 집 강아지는 귀엽습니다",
+    "할머니가 시장에 가십니다",
+]
+
+# 얼굴 점 번호 (MediaPipe Face Mesh)
+R_EYE, L_EYE = 33, 263          # 오른쪽/왼쪽 눈 바깥 꼬리 (본인 기준)
+R_MOUTH, L_MOUTH = 61, 291      # 오른쪽/왼쪽 입꼬리 (본인 기준)
+
+
+def pick_sentence():
+    return random.choice(SENTENCES)
+
+
+# ───────── 말: 발음 정확도 ─────────
+def to_jamo(text):
+    """'맑습니다' → 'ㅁㅏㄺㅅㅡㅂㄴㅣㄷㅏ' 처럼 자모 단위로 분해 (띄어쓰기·문장부호 제거)"""
+    only = "".join(ch for ch in text if ch.isalnum())
+    return unicodedata.normalize("NFD", only)
+
+
+def speech_score(target, heard):
+    """원래 문장과 들린 문장의 자모 유사도 (0~1)"""
+    if not heard:
+        return 0.0
+    return difflib.SequenceMatcher(None, to_jamo(target), to_jamo(heard)).ratio()
+
+
+def builtin_mic():
+    """맥북 내장 마이크 번호 (아이폰 연속성 마이크 말고). 못 찾으면 None = 기본 마이크"""
+    try:
+        mics = [(i, d["name"]) for i, d in enumerate(sd.query_devices()) if d["max_input_channels"] &gt; 0]
+    except Exception:
+        return None
+    for i, name in mics:
+        if any(k in name.lower() for k in ("macbook", "built-in", "내장")):
+            return i
+    for i, name in mics:
+        if not any(k in name for k in ("‘", "’", "iPhone", "연속성")):
+            return i
+    return None
+
+
+def record(seconds=RECORD_SEC):
+    """마이크로 녹음 → (16bit 원본 바이트, 소리 크기 RMS)"""
+    audio = sd.rec(int(seconds * RATE), samplerate=RATE, channels=1, dtype="int16", device=builtin_mic())
+    sd.wait()
+    rms = float(np.sqrt(np.mean(audio.astype(np.float64) ** 2)))
+    return audio.tobytes(), rms
+
+
+def recognize(raw):
+    """녹음 → 한국어 문장. 못 알아들으면 '' / 인터넷 문제는 RuntimeError"""
+    data = sr.AudioData(raw, RATE, 2)
+    try:
+        return sr.Recognizer().recognize_google(data, language="ko-KR")
+    except sr.UnknownValueError:
+        return ""
+    except sr.RequestError as e:
+        raise RuntimeError(f"음성 인식 서버 연결 실패: {e}")
+
+
+# ───────── 카메라 고르기·권한 (맥) ─────────
+def _video_devices():
+    """OpenCV(맥)와 같은 순서의 카메라 목록: 영상+복합 장치를 고유 ID(uniqueID) 순으로 정렬"""
+    devs = list(AV.AVCaptureDevice.devicesWithMediaType_(AV.AVMediaTypeVideo))
+    devs += list(AV.AVCaptureDevice.devicesWithMediaType_(AV.AVMediaTypeMuxed))
+    return sorted(devs, key=lambda d: str(d.uniqueID()))
+
+
+def builtin_camera():
+    """(OpenCV 카메라 번호, 이름): 맥북 내장 카메라를 찾는다. 못 찾으면 (0, '')"""
+    if AV is None:
+        return 0, ""
+    try:
+        devs = _video_devices()
+        for i, d in enumerate(devs):
+            if d.deviceType() == AV.AVCaptureDeviceTypeBuiltInWideAngleCamera:
+                return i, str(d.localizedName())
+    except Exception:
+        pass
+    return 0, ""
+
+
+def camera_permission():
+    """'allowed' / 'denied' / 'ask' (아직 안 물어봄) / 'unknown'(맥이 아님)"""
+    if AV is None:
+        return "unknown"
+    st = AV.AVCaptureDevice.authorizationStatusForMediaType_(AV.AVMediaTypeVideo)
+    return {0: "ask", 1: "denied", 2: "denied", 3: "allowed"}.get(int(st), "unknown")
+
+
+def request_camera_permission():
+    """맥의 '카메라 접근 허용' 창을 띄운다 (결과는 camera_permission()으로 다시 확인)"""
+    if AV is not None:
+        AV.AVCaptureDevice.requestAccessForMediaType_completionHandler_(AV.AVMediaTypeVideo, lambda ok: None)
+
+
+# ───────── 얼굴: 입꼬리 좌우 대칭 ─────────
+class FaceChecker:
+    def __init__(self):
+        self.cap = None
+        self.mesh = mp.solutions.face_mesh.FaceMesh(
+            max_num_faces=1, refine_landmarks=False,
+            min_detection_confidence=0.5, min_tracking_confidence=0.5)
+
+    def open(self):
+        self.index, self.name = builtin_camera()
+        if AV is not None:
+            self.cap = cv2.VideoCapture(self.index, cv2.CAP_AVFOUNDATION)
+        else:
+            self.cap = cv2.VideoCapture(self.index)
+        return self.cap.isOpened()
+
+    def close(self):
+        if self.cap is not None:
+            self.cap.release()
+            self.cap = None
+
+    def read(self):
+        """카메라 한 장 → (화면에 보여줄 RGB 이미지, 측정값 (오른쪽 높이, 왼쪽 높이) 또는 None)"""
+        ok, img = self.cap.read()
+        if not ok:
+            return None, None
+        h, w = img.shape[:2]
+        rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        res = self.mesh.process(rgb)
+        m = None
+        if res.multi_face_landmarks:
+            lm = res.multi_face_landmarks[0].landmark
+            pts = {i: (lm[i].x * w, lm[i].y * h) for i in (R_EYE, L_EYE, R_MOUTH, L_MOUTH)}
+            m = mouth_heights(pts)
+            for i in (R_EYE, L_EYE):
+                cv2.circle(rgb, tuple(int(v) for v in pts[i]), 4, (80, 160, 255), -1)
+            for i in (R_MOUTH, L_MOUTH):
+                cv2.circle(rgb, tuple(int(v) for v in pts[i]), 6, (255, 90, 40), -1)
+            cv2.line(rgb, tuple(int(v) for v in pts[R_EYE]), tuple(int(v) for v in pts[L_EYE]), (80, 160, 255), 2)
+        return cv2.flip(rgb, 1), m       # 거울처럼 보이게 좌우 반전 (측정은 반전 전에 끝남)
+
+
+def mouth_heights(pts):
+    """눈꼬리 선을 수평으로 돌린 뒤, 눈 선에서 각 입꼬리까지의 세로 거리 / 눈 사이 거리"""
+    (rx, ry), (lx, ly) = pts[R_EYE], pts[L_EYE]
+    iod = math.hypot(lx - rx, ly - ry)
+    ang = math.atan2(ly - ry, lx - rx)
+    cx, cy = (rx + lx) / 2, (ry + ly) / 2
+    cos, sin = math.cos(-ang), math.sin(-ang)
+
+    def rel_y(p):
+        x, y = p[0] - cx, p[1] - cy
+        return (x * sin + y * cos) / iod      # 회전 후 y (아래가 +)
+
+    return rel_y(pts[R_MOUTH]), rel_y(pts[L_MOUTH])
+
+
+def judge_face(neutral, smile):
+    """neutral, smile: [(오른쪽 높이, 왼쪽 높이), ...]
+    반환: dict(ok, ratio, lift_r, lift_l, weak, reason)"""
+    if len(neutral) &lt; 5 or len(smile) &lt; 5:
+        return {"ok": None, "reason": "얼굴을 찾지 못했어요"}
+    n_r = float(np.median([m[0] for m in neutral]))
+    n_l = float(np.median([m[1] for m in neutral]))
+    lifts = sorted(((n_r - m[0], n_l - m[1]) for m in smile), key=lambda t: t[0] + t[1], reverse=True)
+    top = lifts[:max(3, len(lifts) // 3)]           # 가장 활짝 웃은 순간들
+    lift_r = float(np.median([t[0] for t in top]))
+    lift_l = float(np.median([t[1] for t in top]))
+    big, small = max(lift_r, lift_l), min(lift_r, lift_l)
+    if big &lt; FACE_MIN_LIFT:
+        return {"ok": None, "reason": "웃음이 감지되지 않았어요", "lift_r": lift_r, "lift_l": lift_l}
+    ratio = max(small, 0.0) / big
+    weak = "오른쪽" if lift_r &lt; lift_l else "왼쪽"
+    ok = ratio &gt;= FACE_RATIO_MIN
+    reason = f"입꼬리 좌우 비율 {ratio:.0%}" + ("" if ok else f" ({weak} 입꼬리가 덜 올라감)")
+    return {"ok": ok, "ratio": ratio, "lift_r": lift_r, "lift_l": lift_l, "weak": weak, "reason": reason}</pre></details>
+    </article></div></div></section>
+<section class="sec gray" id="run"><div class="inner"><div class="sec-head"><div class="en">Launcher</div><h2>실행 파일</h2><p>macOS에서 더블클릭으로 실행하는 스크립트</p></div><div class="files"><article class="file">
+      <div class="fhead"><span class="fname">골든타임_웹실행.command</span><span class="chip">Shell · <b>15</b>줄</span></div>
+      <p class="role">작은 웹서버(localhost:8777)를 켜고 크롬으로 웹 앱을 엽니다.</p>
+      <ul class="funcs"><li><code>python3 -m http.server</code> Web Serial과 카메라는 localhost 주소에서만 동작</li></ul>
+      <details class="code" open><summary>전체 코드 보기</summary>
+        <div class="codebar"><button class="copy" data-target="code-run-0">복사</button></div>
+        <pre id="code-run-0">#!/bin/sh
+# 더블클릭하면 골든타임 지킴이 웹 버전이 크롬에서 열립니다.
+# (마이크로비트 연결·카메라·마이크를 쓰려면 http://localhost 주소로 열어야 해서 작은 웹서버를 함께 켭니다)
+cd "$(dirname "$0")/web"
+PORT=8777
+if ! curl -s -o /dev/null "http://localhost:$PORT/"; then
+  python3 -m http.server $PORT --bind 127.0.0.1 &gt;/dev/null 2&gt;&amp;1 &amp;
+  SERVER=$!
+  sleep 1
+fi
+open -a "Google Chrome" "http://localhost:$PORT/" 2&gt;/dev/null || open "http://localhost:$PORT/"
+echo ""
+echo "골든타임 지킴이 웹 버전이 크롬에서 열렸어요: http://localhost:$PORT/"
+echo "이 창을 닫으면 웹서버도 꺼집니다. 다 쓰고 나서 닫으세요."
+[ -n "$SERVER" ] &amp;&amp; wait $SERVER</pre></details>
+    </article><article class="file">
+      <div class="fhead"><span class="fname">골든타임_실행.command</span><span class="chip">Shell · <b>7</b>줄</span></div>
+      <p class="role">uv로 파이썬 3.12와 라이브러리를 준비해 파이썬 백업 앱을 실행합니다.</p>
+      <ul class="funcs"><li><code>uv run --with ...</code> pyserial, mediapipe, opencv, sounddevice 등</li></ul>
+      <details class="code" open><summary>전체 코드 보기</summary>
+        <div class="codebar"><button class="copy" data-target="code-run-1">복사</button></div>
+        <pre id="code-run-1">#!/bin/sh
+# 더블클릭하면 골든타임 지킴이 프로그램이 켜집니다 (최신 파이썬 3.12 + 카메라·음성 인식 라이브러리)
+cd "$(dirname "$0")"
+"$HOME/.local/bin/uv" run --python 3.12 \
+  --with pyserial --with "mediapipe==0.10.21" --with opencv-python --with pillow \
+  --with sounddevice --with soundfile --with SpeechRecognition --with pyobjc-framework-AVFoundation \
+  python golden_time.py "$@"</pre></details>
+    </article></div></div></section>
+
+<footer>
+  <div class="inner">
+    <div>
+      <div class="logo">골든타임 지킴이</div>
+      <p>매일 1분 체크로 뇌졸중 신호를 찾고 마지막 정상 시각을 기록하는 장치입니다.</p>
+      <p style="margin-top:12px">2026 SW융합 해커톤 · SDG 3.4</p>
+    </div>
+    
+  </div>
+</footer>
+
+<a class="quick" href="#top" aria-label="맨 위로">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+  맨 위로
+</a>
+
+<script>
+document.querySelectorAll('.copy').forEach(b => b.addEventListener('click', () => {
+  const el = document.getElementById(b.dataset.target);
+  const done = t => { b.textContent = t; setTimeout(() => b.textContent = '복사', 1600); };
+  const fallback = () => { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); done('선택됨'); };
+  try { navigator.clipboard.writeText(el.textContent).then(() => done('복사됨'), fallback); } catch (e) { fallback(); }
+}));
+</script>
+
+</html>
