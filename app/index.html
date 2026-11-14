@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>골든타임 지킴이</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* 병원 홈페이지 톤: 흰 바탕 + 딥 틸 + 큰 굵은 제목 + 영문 아이브로우. 위에서부터 히어로(골든타임 다이얼) → 1분 체크 → FAST → 기록 → 푸터 */
+:root {
+  color-scheme: light;
+  --teal: #1a505e;
+  --teal-deep: #0e2f38;
+  --teal-soft: #e7f0f1;
+  --gold: #e0a93b;
+  --gold-ink: #9a6b0f;
+  --paper: #ffffff;
+  --gray: #f4f6f7;
+  --surface: #ffffff;
+  --inset: #f4f6f7;
+  --ink: #111111;
+  --ink-2: #555f66;
+  --ink-3: #8b969d;
+  --rule: #e2e7ea;
+  --alarm: #d0312d;
+  --ok: #1f8a5b;
+  --warn: #c27400;
+  --left: #2f63d6;
+  --right: #e0662a;
+  --sky: #bcd6e6;
+  --ground: #c9a27a;
+  --body: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 16px/1.65 var(--body); letter-spacing: -0.01em; -webkit-font-smoothing: antialiased; }
+.inner { max-width: 1240px; margin: 0 auto; padding-left: max(24px, env(safe-area-inset-left)); padding-right: max(24px, env(safe-area-inset-right)); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* 헤더 */
+.gnb { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
+.gnb .inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 76px; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 21px; color: var(--teal); text-decoration: none; letter-spacing: -0.03em; }
+.logo svg { width: 30px; height: 30px; }
+.menu { display: flex; gap: 44px; font-weight: 600; font-size: 16px; }
+.menu a { color: var(--ink); text-decoration: none; }
+.menu a:hover { color: var(--teal); }
+.gnb-right { display: flex; align-items: center; gap: 10px; }
+.call { display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid var(--teal); color: var(--teal); border-radius: 999px; padding: 8px 18px; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.call b { color: var(--alarm); }
+@media (max-width: 980px) { .menu { display: none; } }
+
+/* 히어로 */
+.hero { position: relative; background: var(--teal-deep); color: #fff; overflow: hidden; }
+.hero::before { content: ""; position: absolute; inset: 0; background:
+  radial-gradient(1100px 520px at 78% 40%, rgba(26,80,94,.85), transparent 70%),
+  linear-gradient(180deg, rgba(14,47,56,0) 0%, rgba(8,28,34,.6) 100%); }
+.hero svg.ecg { position: absolute; left: 0; right: 0; bottom: 120px; width: 100%; height: 120px; opacity: .14; }
+.hero .inner { position: relative; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 40px; align-items: center; padding-top: 96px; padding-bottom: 140px; }
+@media (max-width: 900px) { .hero .inner { grid-template-columns: minmax(0, 1fr); padding-top: 56px; } }
+.hero .en { font-weight: 700; font-size: 14px; letter-spacing: .22em; color: var(--gold); text-transform: uppercase; }
+.hero h1 { margin: 18px 0 22px; font-size: clamp(36px, 5vw, 62px); line-height: 1.22; font-weight: 800; letter-spacing: -0.035em; }
+.hero h1 em { font-style: normal; color: var(--gold); }
+.hero p.lead { margin: 0; font-size: 19px; line-height: 1.75; color: rgba(255,255,255,.78); max-width: 34em; }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
+.dial-wrap { justify-self: center; width: min(400px, 100%); }
+.dial { width: 100%; aspect-ratio: 1; display: block; }
+.dial text { font-family: var(--mono); }
+.pillbar { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); width: min(1000px, calc(100% - 48px)); background: #fff; color: var(--ink); border-radius: 999px; padding: 18px 30px; display: flex; align-items: center; gap: 16px; box-shadow: 0 18px 40px rgba(0,0,0,.18); font-size: 16px; }
+.pillbar svg { flex: none; width: 22px; height: 22px; color: var(--teal); }
+.pillbar strong { color: var(--teal); }
+.pillbar span { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 버튼 */
+.btn { appearance: none; font: 700 15px var(--body); color: var(--ink); background: #fff; border: 1.5px solid var(--rule); border-radius: 999px; padding: 10px 20px; cursor: pointer; transition: .15s; letter-spacing: -0.01em; }
+.btn:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.teal { background: var(--teal); border-color: var(--teal); color: #fff; }
+.btn.teal:hover:not(:disabled) { background: var(--teal-deep); color: #fff; }
+.btn.lg { font-size: 17px; padding: 15px 32px; }
+.btn.on-dark { background: transparent; color: #fff; border-color: rgba(255,255,255,.45); }
+.btn.on-dark:hover:not(:disabled) { border-color: #fff; color: #fff; }
+.btn.gold { background: var(--gold); border-color: var(--gold); color: #1d1405; }
+.btn.gold:hover:not(:disabled) { filter: brightness(1.05); color: #1d1405; }
+
+/* 섹션 공통 */
+section.sec { padding: 110px 0; }
+section.sec.gray { background: var(--gray); }
+.sec-head { text-align: center; margin-bottom: 56px; }
+.sec-head .en { font-weight: 700; font-size: 14px; letter-spacing: .22em; color: var(--teal); text-transform: uppercase; }
+.sec-head h2 { margin: 12px 0 14px; font-size: clamp(30px, 3.6vw, 44px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.3; }
+.sec-head p { margin: 0 auto; color: var(--ink-2); font-size: 18px; max-width: 40em; }
+
+/* 체크 콘솔 */
+.console { background: #fff; border: 1px solid var(--rule); border-radius: 24px; padding: 40px 44px; display: grid; gap: 26px; box-shadow: 0 20px 50px rgba(14,47,56,.06); transition: background .3s; }
+.console.alarm { background: var(--alarm); border-color: var(--alarm); color: #fff; }
+.console.alarm .msg, .console.alarm .eyebrow, .console.alarm .steps li { color: rgba(255,255,255,.9); }
+.console.alarm .steps li { border-top-color: rgba(255,255,255,.35); }
+@media (max-width: 700px) { .console { padding: 26px 22px; } }
+.status-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; }
+@media (max-width: 800px) { .status-row { grid-template-columns: minmax(0, 1fr); } }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; color: var(--teal); background: var(--teal-soft); padding: 5px 14px; border-radius: 999px; }
+.eyebrow b { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.eyebrow[data-kind="run"] { color: var(--left); background: #e8eefc; }
+.eyebrow[data-kind="ok"] { color: var(--ok); background: #e5f4ec; }
+.eyebrow[data-kind="warn"] { color: var(--warn); background: #fbf0dc; }
+.eyebrow[data-kind="bad"] { color: #fff; background: rgba(255,255,255,.18); }
+.headline { margin: 14px 0 10px; font-size: clamp(28px, 3.4vw, 42px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.25; text-wrap: balance; }
+.msg { margin: 0; font-size: 18px; color: var(--ink-2); white-space: pre-line; max-width: 46em; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.answer { display: flex; gap: 10px; flex-wrap: wrap; }
+.answer .btn { font-size: 18px; padding: 14px 30px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; counter-reset: s; }
+.steps li { counter-increment: s; font-weight: 600; font-size: 15px; color: var(--ink-3); border-top: 3px solid var(--rule); padding-top: 12px; }
+.steps li::before { content: "STEP 0" counter(s); display: block; font-size: 12px; letter-spacing: .14em; font-weight: 700; margin-bottom: 2px; }
+.steps li[data-on] { color: var(--teal); border-top-color: var(--teal); }
+.steps li[data-done] { color: var(--ink-2); border-top-color: var(--ink-3); }
+@media (max-width: 600px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.instruments { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 22px; margin-top: 22px; }
+@media (max-width: 900px) { .instruments { grid-template-columns: minmax(0, 1fr); } }
+.card { background: #fff; border: 1px solid var(--rule); border-radius: 20px; padding: 26px 28px; display: grid; gap: 16px; min-width: 0; align-content: start; }
+.card h3 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.02em; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.card h3 small { font-size: 13px; font-weight: 600; color: var(--ink-3); }
+.legend b { font-weight: 700; } .legend .l { color: var(--left); } .legend .r { color: var(--right); }
+canvas#graph { width: 100%; height: 260px; display: block; }
+.cam { position: relative; background: #000; border-radius: 14px; overflow: hidden; aspect-ratio: 4 / 3; width: 100%; max-width: 560px; justify-self: center; }
+.cam canvas { width: 100%; height: 100%; display: block; }
+.cam video { display: none; }
+.cam .tag { position: absolute; left: 12px; bottom: 12px; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; }
+.notes { font: 13px/1.8 var(--mono); color: var(--ink-2); white-space: pre-line; border-top: 1px solid var(--rule); padding-top: 14px; min-height: 1.8em; }
+.hands { display: grid; gap: 20px; }
+.hand { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px; align-items: center; }
+.hand svg { width: 96px; height: 96px; }
+.hand .name { font-weight: 800; font-size: 15px; }
+.hand .vals { font: 12px/1.7 var(--mono); color: var(--ink-2); }
+.hand .tap { font: 700 24px var(--mono); }
+.devices { display: flex; flex-wrap: wrap; gap: 8px; }
+.dev { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 6px 12px; border: 1px solid var(--rule); border-radius: 999px; background: #fff; }
+.dev i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
+.dev.on i { background: var(--ok); } .dev.off i { background: var(--alarm); }
+
+/* FAST */
+.fast { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+@media (max-width: 900px) { .fast { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .fast { grid-template-columns: minmax(0, 1fr); } }
+.fast article { background: #fff; border-radius: 20px; padding: 32px 28px; display: grid; gap: 10px; align-content: start; border: 1px solid var(--rule); }
+.fast .letter { font-size: 54px; font-weight: 900; line-height: 1; color: var(--teal); letter-spacing: -0.04em; }
+.fast article:last-child .letter { color: var(--gold); }
+.fast h4 { margin: 4px 0 0; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+.fast p { margin: 0; color: var(--ink-2); font-size: 15px; }
+.fast .how { font-size: 13px; font-weight: 700; color: var(--teal); border-top: 1px solid var(--rule); padding-top: 12px; margin-top: 6px; }
+
+/* 기록 */
+.ledger { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 22px; }
+@media (max-width: 900px) { .ledger { grid-template-columns: minmax(0, 1fr); } }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid var(--rule); vertical-align: baseline; }
+thead th { font-size: 13px; font-weight: 700; color: var(--ink-3); border-bottom: 2px solid var(--ink); }
+td.n { font-family: var(--mono); font-size: 14px; }
+td.std { font-size: 13px; color: var(--ink-3); }
+.v { display: inline-block; font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 999px; }
+.v.ok { color: var(--ok); background: #e5f4ec; } .v.bad { color: var(--alarm); background: #fbe7e6; } .v.warn { color: var(--warn); background: #fbf0dc; }
+.history { list-style: none; margin: 0; padding: 0; display: grid; max-height: 300px; overflow-y: auto; }
+.history li { display: grid; grid-template-columns: 96px 56px minmax(0, 1fr); gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--rule); font-size: 14px; align-items: baseline; }
+.history time { font: 13px var(--mono); color: var(--ink-3); }
+.history .sum { color: var(--ink-2); font-size: 13px; }
+.empty { color: var(--ink-3); font-size: 15px; padding: 8px 0; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+details.settings { margin-top: 22px; background: #fff; border: 1px solid var(--rule); border-radius: 20px; padding: 20px 28px; }
+details.settings summary { cursor: pointer; font-weight: 800; font-size: 16px; }
+.setgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px 30px; margin-top: 18px; }
+.field { display: grid; gap: 6px; } .field > span { font-size: 13px; font-weight: 700; color: var(--ink-3); }
+input[type=text], select { font: 15px var(--body); padding: 10px 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--gray); color: var(--ink); width: 100%; }
+label.chk { display: flex; gap: 8px; align-items: center; font-size: 15px; }
+
+/* 푸터 · 퀵메뉴 */
+footer { background: var(--teal-deep); color: rgba(255,255,255,.72); padding: 64px 0 72px; font-size: 14px; }
+footer .inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 30px; align-items: end; }
+@media (max-width: 800px) { footer .inner { grid-template-columns: minmax(0, 1fr); } }
+@media (min-width: 801px) { footer .inner > .row { margin-right: 110px; } }
+footer .logo { color: #fff; margin-bottom: 14px; }
+footer .num { font-size: 15px; color: rgba(255,255,255,.7); }
+footer .num strong { display: block; font-size: 40px; font-weight: 800; color: #fff; letter-spacing: -0.03em; line-height: 1.2; }
+.quick { position: fixed; right: max(24px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom)); z-index: 30; width: 88px; height: 88px; border-radius: 18px; background: var(--teal); color: #fff; border: 0; display: grid; place-items: center; align-content: center; gap: 2px; font: 700 14px var(--body); cursor: pointer; box-shadow: 0 14px 30px rgba(14,47,56,.3); }
+.quick svg { width: 26px; height: 26px; }
+.quick:hover { background: var(--teal-deep); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<header class="gnb">
+  <div class="inner">
+    <a class="logo" href="#top">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="#1a505e" stroke-width="3"/><path d="M16 16 L16 6" stroke="#e0a93b" stroke-width="3" stroke-linecap="round"/><path d="M16 16 L23 20" stroke="#1a505e" stroke-width="3" stroke-linecap="round"/></svg>
+      골든타임 지킴이
+    </a>
+    <nav class="menu"><a href="#check">1분 체크</a><a href="#fast">뇌졸중 신호</a><a href="#record">체크 기록</a><a href="#settings">설정</a><a href="../">코드</a></nav>
+    <div class="gnb-right">
+      <span class="call">응급 <b>119</b> · 베트남 <b>115</b></span>
+    </div>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <svg class="ecg" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true"><polyline fill="none" stroke="#fff" stroke-width="2" points="0,60 300,60 330,60 345,20 360,100 375,10 392,60 600,60 900,60 930,60 945,20 960,100 975,10 992,60 1200,60"/></svg>
+  <div class="inner">
+    <div>
+      <div class="en">Stroke Self Check</div>
+      <h1>쓰러지기 전 1분,<br><em>골든타임</em>을 지킵니다</h1>
+      <p class="lead">뇌졸중 치료는 '마지막으로 정상이었던 시각'부터 약 4.5시간 안에 받아야 합니다. 매일 1분 체크로 이상 신호를 일찍 찾고, 그 시각을 기록해 두세요.</p>
+      <div class="cta">
+        <button class="btn gold lg" id="heroStart">지금 1분 체크하기</button>
+        <a class="btn on-dark lg" href="#fast" style="text-decoration:none">뇌졸중 신호 알아보기</a>
+      </div>
+    </div>
+    <div class="dial-wrap"><svg class="dial" id="dial" viewBox="0 0 240 240" role="img" aria-label="골든타임 다이얼"></svg></div>
+  </div>
+  <div class="pillbar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+    <strong id="heroLkwLabel">마지막 정상 확인</strong><span id="heroLkw">아직 기록이 없어요. 첫 체크로 기준 시각을 만들어 주세요.</span>
+  </div>
+</section>
+
+<section class="sec" id="check">
+  <div class="inner">
+    <div class="sec-head">
+      <div class="en">Self Check</div>
+      <h2>1분 뇌졸중 자가 체크</h2>
+      <p>양손에 기기를 쥐고 음성 안내를 따라 하세요. 팔 처짐, 손가락 속도, 얼굴 대칭, 말을 차례로 확인합니다.</p>
+    </div>
+
+    <div class="console" id="hero">
+      <div class="status-row">
+        <div>
+          <div class="eyebrow" id="stEyebrow" data-kind="idle"><b></b><span id="stCount">대기 중</span></div>
+          <h3 class="headline" id="stMain">체크를 시작해 볼까요?</h3>
+          <p class="msg" id="stMsg">먼저 오른쪽 [마이크로비트 연결]로 수신기를 연결하고, 손에 쥘 L·R 기기의 전원을 켜 주세요.</p>
+        </div>
+        <div class="devices">
+          <span class="dev" id="devRx"><i></i><span id="txtSerial">수신기 미연결</span></span>
+          <span class="dev" id="devL"><i></i>L 왼손</span>
+          <span class="dev" id="devR"><i></i>R 오른손</span>
+        </div>
+      </div>
+      <div class="answer" id="qRow" hidden>
+        <button class="btn teal" id="qYes">정상이에요</button>
+        <button class="btn" id="qNo">이상해요</button>
+      </div>
+      <div class="actions">
+        <button class="btn teal lg" id="btnStart">체크 시작</button>
+        <button class="btn lg" id="btnConnect">마이크로비트 연결</button>
+        <button class="btn lg" id="btnTest" disabled>연결 테스트</button>
+        <button class="btn lg" id="btnStop">중단 · 경보 해제</button>
+      </div>
+      <ol class="steps" id="steps"><li>팔 처짐</li><li>손가락 두드리기</li><li>얼굴 대칭</li><li>말 따라 하기</li></ol>
+    </div>
+
+    <div class="instruments">
+      <div class="card">
+        <h3 id="viewTitle"><span>팔 처짐 · 기준 자세 대비 각도</span><small class="legend"><b class="l">━ 왼손</b>&nbsp; <b class="r">━ 오른손</b>&nbsp; <b style="color:var(--alarm)">┄ ±10° 기준</b></small></h3>
+        <div id="graphBox"><canvas id="graph"></canvas></div>
+        <div class="cam" id="camBox" hidden>
+          <video id="video" playsinline muted></video>
+          <canvas id="camCanvas" width="640" height="480"></canvas>
+          <span class="tag" id="camTag">카메라</span>
+        </div>
+        <div class="notes" id="detail"></div>
+      </div>
+      <div class="card">
+        <h3><span>양손 기기</span></h3>
+        <div class="hands">
+          <div class="hand">
+            <svg viewBox="0 0 120 120" aria-label="왼손 기울기"><defs><clipPath id="cL"><circle cx="60" cy="60" r="54"/></clipPath></defs>
+              <g clip-path="url(#cL)"><g id="horL"><rect x="-60" y="-60" width="240" height="120" fill="var(--sky)"/><rect x="-60" y="60" width="240" height="120" fill="var(--ground)"/><line x1="-60" y1="60" x2="180" y2="60" stroke="#fff" stroke-width="2"/></g></g>
+              <circle cx="60" cy="60" r="54" fill="none" stroke="var(--left)" stroke-width="4"/><path d="M36 60 h18 M66 60 h18 M60 55 v10" stroke="#111" stroke-width="3" fill="none"/></svg>
+            <div><div class="name" style="color:var(--left)">L · 왼손</div><div class="vals" id="valL">처짐 0.0°<br>회전 0.0°</div><div class="tap" id="tapL">–</div></div>
+          </div>
+          <div class="hand">
+            <svg viewBox="0 0 120 120" aria-label="오른손 기울기"><defs><clipPath id="cR"><circle cx="60" cy="60" r="54"/></clipPath></defs>
+              <g clip-path="url(#cR)"><g id="horR"><rect x="-60" y="-60" width="240" height="120" fill="var(--sky)"/><rect x="-60" y="60" width="240" height="120" fill="var(--ground)"/><line x1="-60" y1="60" x2="180" y2="60" stroke="#fff" stroke-width="2"/></g></g>
+              <circle cx="60" cy="60" r="54" fill="none" stroke="var(--right)" stroke-width="4"/><path d="M36 60 h18 M66 60 h18 M60 55 v10" stroke="#111" stroke-width="3" fill="none"/></svg>
+            <div><div class="name" style="color:var(--right)">R · 오른손</div><div class="vals" id="valR">처짐 0.0°<br>회전 0.0°</div><div class="tap" id="tapR">–</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec gray" id="fast">
+  <div class="inner">
+    <div class="sec-head">
+      <div class="en">F · A · S · T</div>
+      <h2>이런 신호가 보이면, 바로 확인하세요</h2>
+      <p>뇌졸중은 갑자기 찾아옵니다. 의료진이 쓰는 FAST 원칙을 이 장치가 하나씩 확인합니다.</p>
+    </div>
+    <div class="fast">
+      <article><div class="letter">F</div><h4>얼굴 Face</h4><p>웃을 때 한쪽 입꼬리가 처지거나 얼굴 한쪽이 마비된 느낌이 든다.</p><div class="how">카메라가 입꼬리 좌우 높이를 비교</div></article>
+      <article><div class="letter">A</div><h4>팔 Arm</h4><p>양팔을 앞으로 뻗으면 한쪽 팔이 아래로 처지거나 안쪽으로 돌아간다.</p><div class="how">양손 기기의 가속도 센서로 각도 측정</div></article>
+      <article><div class="letter">S</div><h4>말 Speech</h4><p>발음이 어눌하거나 쉬운 문장을 따라 말하기 어렵다.</p><div class="how">음성 인식으로 발음 정확도 계산</div></article>
+      <article><div class="letter">T</div><h4>시간 Time</h4><p>하나라도 해당되면 바로 119·115. 치료는 마지막 정상 시각부터 약 4.5시간 안에.</p><div class="how">마지막 정상 시각을 매일 기록</div></article>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="record">
+  <div class="inner">
+    <div class="sec-head">
+      <div class="en">Record</div>
+      <h2>판정 기록</h2>
+      <p>정상 기록이 3번 쌓이면 '평소의 나'와 비교하는 개인 기준선으로 판정합니다.</p>
+    </div>
+    <div class="ledger">
+      <div class="card" id="resultBox">
+        <h3><span>이번 체크 결과</span><small id="resMode">아직 측정 전</small></h3>
+        <table>
+          <thead><tr><th>지표</th><th>왼손</th><th>오른손</th><th>기준</th><th>판정</th></tr></thead>
+          <tbody id="resBody"><tr><td colspan="5" class="empty">체크를 마치면 여기에 결과가 정리됩니다.</td></tr></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3><span>체크 기록</span><small>마지막 정상 <b id="lkw" style="color:var(--teal)">기록 없음</b></small></h3>
+        <ul class="history" id="history"></ul>
+        <div class="row"><button class="btn" id="btnCsv">CSV로 저장</button><button class="btn" id="btnClear">이 사용자 기록 지우기</button></div>
+      </div>
+    </div>
+    <details class="settings" id="settings">
+      <summary>설정 · 시뮬레이션</summary>
+      <div class="setgrid">
+        <label class="field"><span>사용자</span><input type="text" id="user" value="할머니"></label>
+        <label class="field"><span>카메라</span><select id="camSelect"><option value="">자동 (맥북 내장 우선)</option></select></label>
+        <label class="field"><span>마이크</span><select id="micSelect"><option value="">자동 (맥북 내장 우선)</option></select></label>
+        <div class="field"><span>판단 방식</span>
+          <label class="chk"><input type="checkbox" id="optAuto" checked> 얼굴·말을 카메라·마이크로 자동 판단</label>
+          <label class="chk"><input type="checkbox" id="optVoice" checked> 음성 안내</label>
+        </div>
+        <div class="field"><span>시뮬레이션 (기기 없이 체험)</span>
+          <div class="row"><button class="btn" id="simNormal">정상</button><button class="btn" id="simLeft">왼팔 마비</button></div>
+          <label class="chk"><input type="checkbox" id="optFast"> 빠른 모드 (검사 4초)</label>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <div class="inner">
+    <div>
+      <div class="logo">골든타임 지킴이</div>
+      <p style="margin:0;max-width:52em">진단 도구가 아니라 조기 발견과 기록을 돕는 도구입니다. 이상이 느껴지면 판정과 관계없이 바로 응급 전화를 하세요. 카메라 영상은 이 컴퓨터 안에서만 처리되고, 음성 인식은 크롬(구글) 서버를 사용합니다. 기록은 이 컴퓨터의 크롬에만 저장됩니다.</p>
+      <p style="margin:14px 0 0">2026 SW융합 해커톤 · SDG 3.4</p>
+    </div>
+    <div class="row" style="gap:40px">
+      <div class="num">한국 응급<strong>119</strong></div>
+      <div class="num">베트남 응급<strong>115</strong></div>
+    </div>
+  </div>
+</footer>
+
+<button class="quick" id="quickStart" aria-label="1분 체크로 이동">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+  1분 체크
+</button>
+
+<script type="module">
+// ───────── 설정 (실험 결과로 보정) ─────────
+const CFG = { DROP: 10, DIFF: 8, ROT: 15, TAP: 0.70, BASE_MIN: 3, Z: 3, GOLDEN_H: 4.5,
+              FACE_RATIO_MIN: 0.55, FACE_MIN_LIFT: 0.025, SPEECH_MIN: 0.75 };
+const PREP_DRIFT = 9, PREP_TAP = 15;   // 손가락 검사 전 준비 시간(초): 손마다 15초
+const SENTENCES = ['오늘은 날씨가 맑습니다', '나는 아침마다 물을 마십니다', '우리 집 강아지는 귀엽습니다', '할머니가 시장에 가십니다'];
+const VISION_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+const FACE_MODEL = 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
+const R_EYE = 33, L_EYE = 263, R_MOUTH = 61, L_MOUTH = 291;
+const HK = { L: '왼손', R: '오른손' };
+const TAP_BTN = { L: 'B 버튼(화면 오른쪽 버튼)', R: 'A 버튼(화면 왼쪽 버튼)' };   // 왼손 엄지는 B, 오른손 엄지는 A
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const mean = a => a.reduce((s, x) => s + x, 0) / a.length;
+const median = a => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+const pstdev = a => { const m = mean(a); return Math.sqrt(mean(a.map(x => (x - m) ** 2))); };
+const pad = n => String(n).padStart(2, '0');
+const hm = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const hms = ms => { const s = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(s / 3600)}:${pad(Math.floor(s % 3600 / 60))}:${pad(s % 60)}`; };
+const fmtDur = ms => { const s = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(s / 3600)}시간 ${pad(Math.floor(s % 3600 / 60))}분`; };
+
+// ───────── 판정 규칙 ─────────
+function angleChange(samples) {
+  if (samples.length < 6) return null;
+  const end = samples[samples.length - 1][0];
+  let base = samples.filter(s => s[0] >= 1 && s[0] < 2);          // 처음 1초는 자세 잡는 시간
+  if (base.length < 3) base = samples.filter(s => s[0] < 1);
+  const last = samples.filter(s => s[0] >= end - 1);
+  return [Math.abs(mean(last.map(s => s[1])) - mean(base.map(s => s[1]))),
+          Math.abs(mean(last.map(s => s[2])) - mean(base.map(s => s[2])))];
+}
+function derive(m) {
+  const fast = Math.max(m.tapL, m.tapR);
+  return { drop: Math.max(m.dropL, m.dropR), diff: Math.abs(m.dropL - m.dropR), rot: Math.max(m.rotL, m.rotR),
+           ratio: fast ? Math.min(m.tapL, m.tapR) / fast : 0 };
+}
+function judge(m, hist) {
+  const d = derive(m), base = hist.length >= CFG.BASE_MIN, flags = [];
+  for (const [k, lim] of [['drop', CFG.DROP], ['diff', CFG.DIFF], ['rot', CFG.ROT]]) {
+    let bad;
+    if (base) { const v = hist.map(h => h[k]), mu = mean(v), sd = Math.max(pstdev(v), 2); bad = (d[k] - mu) / sd > CFG.Z || d[k] > lim * 2; }
+    else bad = d[k] > lim;
+    if (bad) flags.push(k);
+  }
+  let bad;
+  if (base) { const v = hist.map(h => h.ratio), mu = mean(v), sd = Math.max(pstdev(v), 0.05); bad = (mu - d.ratio) / sd > CFG.Z || d.ratio < 0.5; }
+  else bad = d.ratio < CFG.TAP;
+  if (bad) flags.push('ratio');
+  const weak = m.dropL >= m.dropR ? '왼' : '오른', rot = m.rotL >= m.rotR ? '왼' : '오른', slow = m.tapL <= m.tapR ? '왼' : '오른';
+  const text = { drop: `${weak}팔 처짐 ${d.drop.toFixed(0)}°`, diff: `좌우 팔 높이 차이 ${d.diff.toFixed(0)}°`,
+                 rot: `${rot}손 안쪽 회전 ${d.rot.toFixed(0)}°`, ratio: `${slow}손 두드리기 느림 (${Math.round(d.ratio * 100)}%)` };
+  const reasons = flags.map(f => text[f]);
+  if (!m.speechOk) reasons.unshift('말이 어눌함');
+  if (!m.faceOk) reasons.unshift('얼굴 한쪽 처짐');
+  const level = (!m.faceOk || !m.speechOk || flags.length >= 2) ? '위험' : flags.length ? '재검' : '정상';
+  return { level, reasons, flags, d, base, mode: base ? `개인 기준선 · 정상 기록 ${hist.length}회` : '기본 기준 · 정상 기록 3회 미만' };
+}
+const toJamo = s => s.replace(/[^\p{L}\p{N}]/gu, '').normalize('NFD');
+function matchLen(a, b) {
+  if (!a.length || !b.length) return 0;
+  let best = 0, ai = 0, bi = 0; const dp = new Array(b.length + 1).fill(0);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = 0;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = dp[j]; dp[j] = a[i - 1] === b[j - 1] ? prev + 1 : 0;
+      if (dp[j] > best) { best = dp[j]; ai = i - best; bi = j - best; }
+      prev = tmp;
+    }
+  }
+  if (!best) return 0;
+  return best + matchLen(a.slice(0, ai), b.slice(0, bi)) + matchLen(a.slice(ai + best), b.slice(bi + best));
+}
+function speechScore(target, heard) { if (!heard) return 0; const a = toJamo(target), b = toJamo(heard); return 2 * matchLen(a, b) / (a.length + b.length); }
+function mouthHeights(p) {
+  const [rx, ry] = p[R_EYE], [lx, ly] = p[L_EYE];
+  const iod = Math.hypot(lx - rx, ly - ry), ang = Math.atan2(ly - ry, lx - rx), cx = (rx + lx) / 2, cy = (ry + ly) / 2;
+  const c = Math.cos(-ang), s = Math.sin(-ang);
+  const relY = ([x, y]) => ((x - cx) * s + (y - cy) * c) / iod;
+  return [relY(p[R_MOUTH]), relY(p[L_MOUTH])];
+}
+function judgeFace(neutral, smile) {
+  if (neutral.length < 5 || smile.length < 5) return { ok: null, reason: '얼굴을 찾지 못했어요' };
+  const nR = median(neutral.map(m => m[0])), nL = median(neutral.map(m => m[1]));
+  const lifts = smile.map(m => [nR - m[0], nL - m[1]]).sort((a, b) => (b[0] + b[1]) - (a[0] + a[1]));
+  const top = lifts.slice(0, Math.max(3, Math.floor(lifts.length / 3)));
+  const liftR = median(top.map(t => t[0])), liftL = median(top.map(t => t[1]));
+  const big = Math.max(liftR, liftL), small = Math.min(liftR, liftL);
+  if (big < CFG.FACE_MIN_LIFT) return { ok: null, reason: '웃음이 감지되지 않았어요' };
+  const ratio = Math.max(small, 0) / big, weak = liftR < liftL ? '오른쪽' : '왼쪽', ok = ratio >= CFG.FACE_RATIO_MIN;
+  return { ok, ratio, weak, reason: `입꼬리 좌우 비율 ${Math.round(ratio * 100)}%` + (ok ? '' : ` (${weak} 입꼬리가 덜 올라감)`) };
+}
+
+// ───────── 기록 ─────────
+const KEY = 'golden-time-web-v1';
+let store = {};
+try { store = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { store = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+const uname = () => $('user').value.trim() || '사용자';
+const hist = () => (store[uname()] ||= []);
+const normals = () => hist().filter(h => h.level === '정상').slice(-14).map(h => derive(h.m));
+const lastNormalRec = () => [...hist()].reverse().find(h => h.level === '정상');
+
+// ───────── 화면 ─────────
+const EYEBROW = { idle: '대기 중', step: '안내', run: '측정 중', ok: '정상', warn: '확인 필요', bad: '경보' };
+function show(kind, main, msg = '', count = '') {
+  $('hero').classList.toggle('alarm', kind === 'bad');
+  $('stEyebrow').dataset.kind = kind;
+  $('stCount').textContent = count || EYEBROW[kind] || '';
+  $('stMain').textContent = main; $('stMsg').textContent = msg;
+}
+function setStep(n) {   // 0 = 없음, 1~4 = 진행 중인 단계, 5 = 모두 완료
+  [...$('steps').children].forEach((li, i) => {
+    li.toggleAttribute('data-on', i + 1 === n);
+    li.toggleAttribute('data-done', i + 1 < n);
+  });
+}
+let detail = [];
+function note(t) { detail.push(t); $('detail').textContent = detail.join('\n'); }
+function gauge(h, pitch, roll) {
+  $('hor' + h).setAttribute('transform', `rotate(${(h === 'L' ? -roll : roll).toFixed(1)} 60 60) translate(0 ${(-pitch * 1.6).toFixed(1)})`);
+  $('val' + h).innerHTML = `처짐 ${Math.abs(pitch).toFixed(1)}°<br>회전 ${Math.abs(roll).toFixed(1)}°`;
+}
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+// 골든타임 다이얼: 마지막 정상 시각부터 4.5시간
+const SVGNS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, text) { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; }
+function arcPath(cx, cy, r, a0, a1) {
+  const p = a => [cx + r * Math.sin(a), cy - r * Math.cos(a)];
+  const [x0, y0] = p(a0), [x1, y1] = p(a1), large = a1 - a0 > Math.PI ? 1 : 0;
+  return `M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+}
+function renderDial() {
+  const svg = $('dial'); svg.replaceChildren();
+  const alarm = $('hero').classList.contains('alarm');
+  const fg = '#ffffff', sub = 'rgba(255,255,255,.62)', track = 'rgba(255,255,255,.16)', gold = alarm ? '#ff6b63' : '#e0a93b';
+  const rec = lastNormalRec(), total = CFG.GOLDEN_H * 3600e3;
+  const elapsed = rec ? Date.now() - rec.ts : null, remain = rec ? total - elapsed : null;
+  svg.append(el('circle', { cx: 120, cy: 120, r: 100, fill: 'none', stroke: track, 'stroke-width': 10 }));
+  for (let i = 0; i <= 9; i++) {           // 30분 눈금 (0 ~ 4.5시간)
+    const a = i / 9 * 2 * Math.PI, major = i % 2 === 0;
+    const r0 = major ? 82 : 86, r1 = 90;
+    svg.append(el('line', { x1: 120 + r0 * Math.sin(a), y1: 120 - r0 * Math.cos(a), x2: 120 + r1 * Math.sin(a), y2: 120 - r1 * Math.cos(a), stroke: sub, 'stroke-width': major ? 1.6 : 1 }));
+  }
+  [['0', 0], ['1h', 2], ['2h', 4], ['3h', 6], ['4h', 8]].forEach(([t, i]) => {
+    const a = i / 9 * 2 * Math.PI;
+    svg.append(el('text', { x: 120 + 70 * Math.sin(a), y: 120 - 70 * Math.cos(a) + 3.5, 'text-anchor': 'middle', 'font-size': 9, fill: sub }, t));
+  });
+  if (rec && remain > 0) {
+    const frac = Math.min(1, elapsed / total);
+    svg.append(el('path', { d: arcPath(120, 120, 100, frac * 2 * Math.PI, 2 * Math.PI - 0.0001), fill: 'none', stroke: gold, 'stroke-width': 10, 'stroke-linecap': 'butt' }));
+    const a = frac * 2 * Math.PI;
+    svg.append(el('circle', { cx: 120 + 100 * Math.sin(a), cy: 120 - 100 * Math.cos(a), r: 7, fill: fg }));
+  }
+  const label = !rec ? '기록 없음' : remain > 0 ? '남은 골든타임' : '다시 체크하세요';
+  svg.append(el('text', { x: 120, y: 96, 'text-anchor': 'middle', 'font-size': 10, 'letter-spacing': '1.5', fill: sub }, label));
+  svg.append(el('text', { x: 120, y: 128, 'text-anchor': 'middle', 'font-size': 30, 'font-weight': 600, fill: fg }, rec ? (remain > 0 ? hms(remain) : '4:30:00+') : '–:––:––'));
+  svg.append(el('text', { x: 120, y: 152, 'text-anchor': 'middle', 'font-size': 10, fill: sub }, rec ? `마지막 정상 ${hm(new Date(rec.ts))}` : '체크하면 기준 시각이 생겨요'));
+  $('heroLkw').textContent = !rec ? '아직 기록이 없어요. 첫 체크로 기준 시각을 만들어 주세요.'
+    : remain > 0 ? `${hm(new Date(rec.ts))}  ·  지금 증상이 생긴다면 남은 골든타임 ${hms(remain)}`
+    : `${hm(new Date(rec.ts))}  ·  4.5시간이 지났어요. 다시 체크해 주세요.`;
+}
+setInterval(renderDial, 1000);
+
+function drawGraph() {
+  const cv = $('graph'), dpr = devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (!w) return;
+  cv.width = w * dpr; cv.height = h * dpr;
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
+  const R = 30, x0 = 44, x1 = w - 8, y = v => h / 2 - Math.max(-R, Math.min(R, v)) / R * (h / 2 - 14), x = t => x0 + Math.min(t, TEST) / TEST * (x1 - x0);
+  c.font = '11px ' + css('--mono'); c.textAlign = 'right'; c.textBaseline = 'middle';
+  for (const v of [-30, -20, 0, 20, 30]) {
+    c.strokeStyle = css('--rule'); c.lineWidth = v === 0 ? 1.2 : 0.6; c.beginPath(); c.moveTo(x0, y(v)); c.lineTo(x1, y(v)); c.stroke();
+    c.fillStyle = css('--ink-3'); c.fillText(`${v > 0 ? '+' : ''}${v}°`, x0 - 8, y(v));
+  }
+  c.setLineDash([4, 4]); c.strokeStyle = css('--alarm'); c.lineWidth = 1;
+  for (const v of [-CFG.DROP, CFG.DROP]) { c.beginPath(); c.moveTo(x0, y(v)); c.lineTo(x1, y(v)); c.stroke(); }
+  c.setLineDash([]); c.textAlign = 'center'; c.fillStyle = css('--ink-3');
+  for (let s = 0; s <= TEST; s += TEST > 5 ? 2 : 1) c.fillText(`${s}s`, x(s), h - 6);
+  c.fillStyle = css('--inset'); c.globalAlpha = .6; c.fillRect(x0, 0, x(1) - x0, h - 16); c.globalAlpha = 1;   // 자세 잡는 1초
+  for (const hd of ['L', 'R']) {
+    const s = run.samples[hd]; if (s.length < 2) continue;
+    const base = (s.find(p => p[0] >= 1 && p[0] < 2) || s[0])[1];
+    c.strokeStyle = css(hd === 'L' ? '--left' : '--right'); c.lineWidth = 2.2; c.lineJoin = 'round'; c.beginPath();
+    s.forEach((p, i) => { const px = x(p[0]), py = y(p[1] - base); i ? c.lineTo(px, py) : c.moveTo(px, py); });
+    c.stroke();
+    const lp = s[s.length - 1]; c.fillStyle = c.strokeStyle; c.beginPath(); c.arc(x(lp[0]), y(lp[1] - base), 3.5, 0, 7); c.fill();
+  }
+}
+addEventListener('resize', drawGraph);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { drawGraph(); renderDial(); });
+
+// ───────── 소리 ─────────
+let koVoice = null;
+const pickVoice = () => { koVoice = speechSynthesis.getVoices().find(v => v.lang.startsWith('ko')) || null; };
+speechSynthesis.onvoiceschanged = pickVoice; pickVoice();
+function say(text) {
+  return new Promise(res => {
+    if (!$('optVoice').checked) return res();
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.lang = 'ko-KR'; if (koVoice) u.voice = koVoice; u.rate = 1.05;
+    const t = setTimeout(res, 1500 + text.length * 160);
+    u.onend = () => { clearTimeout(t); res(); };
+    speechSynthesis.speak(u);
+  });
+}
+let actx = null;
+function beep(freq = 1000, ms = 220) {
+  try { actx ||= new AudioContext(); const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = freq; g.gain.value = 0.15; o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + ms / 1000); } catch (e) {}
+}
+
+// ───────── 마이크로비트 (Web Serial) ─────────
+let port = null, writer = null, linkTest = null;
+function setDev(id, state) { $(id).classList.toggle('on', state === 'on'); $(id).classList.toggle('off', state === 'off'); }
+function setSerial(on, text) { setDev('devRx', on ? 'on' : null); $('txtSerial').textContent = text; $('btnTest').disabled = !on; if (!on) { setDev('devL', null); setDev('devR', null); } }
+async function connectSerial() {
+  if (!('serial' in navigator)) { show('warn', '이 브라우저는 마이크로비트 연결을 지원하지 않아요', '크롬이나 엣지로 열어 주세요.'); return; }
+  try { port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x0D28 }] }); await port.open({ baudRate: 115200 }); }
+  catch (e) { setSerial(false, '수신기 미연결'); return; }
+  writer = port.writable.getWriter();
+  setSerial(true, '수신기 연결됨');
+  readLoop();
+  await testLink();
+}
+async function readLoop() {
+  const dec = new TextDecoder(); let buf = '';
+  const reader = port.readable.getReader();
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (line) onLine(line); }
+    }
+  } catch (e) {}
+  finally { reader.releaseLock(); writer = null; port = null; setSerial(false, '연결 끊김'); setDev('devRx', 'off'); }
+}
+async function send(cmd) {
+  if (!writer || run.sim) return;
+  const n = ['DRIFT', 'STOP', 'TAP_L', 'TAP_R'].includes(cmd) ? 2 : 1;
+  try { for (let i = 0; i < n; i++) { await writer.write(new TextEncoder().encode(cmd + '\n')); if (i < n - 1) await sleep(30); } } catch (e) {}
+}
+async function testLink() {
+  linkTest = { L: 0, R: 0 };
+  show('step', '연결을 확인하고 있어요', '손에 쥘 마이크로비트 L과 R의 전원이 켜져 있어야 해요.', '연결 테스트');
+  await send('DRIFT'); await sleep(1500); await send('STOP');
+  const t = linkTest; linkTest = null;
+  setDev('devL', t.L > 3 ? 'on' : 'off'); setDev('devR', t.R > 3 ? 'on' : 'off');
+  if (t.L > 3 && t.R > 3) show('ok', '준비됐어요', '양손 기기 신호가 모두 들어옵니다. [체크 시작]을 누르세요.', '연결 확인');
+  else if (!t.L && !t.R) show('warn', '손 기기 신호가 없어요', '연결한 기기가 하트 모양(수신용)인지, L·R 전원이 켜졌는지 확인하세요.');
+  else show('warn', `${t.L > 3 ? '오른손' : '왼손'} 신호가 없어요`, '신호가 없는 쪽 전원과 화면 글자(L/R)를 확인하세요.');
+}
+function onLine(line) {
+  const p = line.split(',');
+  if (p[0] === 'D' && p.length === 4 && (p[1] === 'L' || p[1] === 'R')) {
+    if (linkTest) { linkTest[p[1]]++; return; }
+    if (run.phase !== 'DRIFT') return;
+    const t = (performance.now() - run.t0) / 1000, pitch = +p[2], roll = +p[3];
+    if (Number.isNaN(pitch) || Number.isNaN(roll)) return;
+    run.samples[p[1]].push([t, pitch, roll]);
+    const b = run.samples[p[1]][0];
+    gauge(p[1], pitch - b[1], roll - b[2]);
+    drawGraph();
+  } else if (p[0] === 'T' && p.length === 3 && run.phase === 'TAP' && p[1] === run.hand) {
+    run.taps[p[1]] = +p[2] || 0;
+  }
+}
+
+// ───────── 검사 진행 ─────────
+let TEST = 10, runId = 0, alarmTimer = null, lastYellow = null;
+let run = { samples: { L: [], R: [] }, taps: { L: 0, R: 0 }, phase: null, hand: null, t0: 0, drift: null, answers: {}, sim: null, active: false };
+const alive = id => id === runId && run.active;
+async function wait(ms, id) { await sleep(ms); if (!alive(id)) throw new Error('stopped'); }
+const gauss = s => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return s * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+const IDLE_MSG = "뇌졸중 치료는 '마지막으로 정상이었던 시각'부터 약 4.5시간 안에 받아야 합니다. 매일 체크해서 그 시각을 남겨 두세요.";
+
+function stopAll(silent) {
+  runId++; run.active = false; run.phase = null;
+  if (alarmTimer) { clearInterval(alarmTimer); alarmTimer = null; }
+  $('btnStart').disabled = false; $('qRow').hidden = true; closeCamera();
+  try { speechSynthesis.cancel(); } catch (e) {}
+  send('STOP');
+  if (!silent) { show('idle', '체크를 시작해 볼까요?', IDLE_MSG); setStep(0); }
+  renderDial();
+}
+async function countdown(n, title, msg, id) {
+  for (let k = n; k > 0; k--) { show('step', title, msg, `준비 ${k}`); await wait(1000, id); }
+}
+function setTap(h, n) { $('tap' + h).textContent = n == null ? '–' : `${n}회`; }
+
+async function startCheck(sim = null) {
+  if (!sim && !writer) { show('warn', '마이크로비트가 연결되지 않았어요', '위의 [마이크로비트 연결]을 누르고 하트 모양(수신용)을 고르세요. 기기 없이 체험하려면 설정의 시뮬레이션을 쓰세요.'); return; }
+  stopAll(true);
+  const id = runId;
+  TEST = sim && $('optFast').checked ? 4 : 10;
+  run = { samples: { L: [], R: [] }, taps: { L: 0, R: 0 }, phase: null, hand: null, t0: 0, drift: null, answers: {}, sim, active: true, faceRatio: null, speechScore: null, heard: null };
+  detail = []; $('detail').textContent = '';
+  $('btnStart').disabled = true; gauge('L', 0, 0); gauge('R', 0, 0); setTap('L'); setTap('R'); drawGraph();
+  try {
+    setStep(1);
+    const msg1 = '양손에 기기를 쥐고(화면이 위로), 손바닥을 위로 한 채 팔을 앞으로 쭉 뻗으세요. 그리고 눈을 감으세요.';
+    say('팔 처짐 검사입니다. ' + msg1);
+    await countdown(PREP_DRIFT, '팔을 앞으로 뻗고 눈을 감으세요', msg1, id);
+    say('시작. 그대로 버티세요.');
+    run.phase = 'DRIFT'; run.t0 = performance.now(); send('DRIFT');
+    const simTimer = sim ? setInterval(simDrift, 100) : null;
+    for (let t = 0; t < TEST * 10; t++) { show('run', '그대로 버티세요', '눈을 감고, 팔을 움직이지 마세요.', `측정 ${(TEST - t / 10).toFixed(1)}s`); await wait(100, id); }
+    if (simTimer) clearInterval(simTimer);
+    run.phase = null; send('STOP');
+    const L = angleChange(run.samples.L), R = angleChange(run.samples.R);
+    if (!L || !R) {
+      const miss = [!L && '왼손', !R && '오른손'].filter(Boolean).join(', ');
+      stopAll(true); setStep(0); show('warn', `${miss} 기기 신호가 없어요`, '손 마이크로비트 전원을 확인하고 [연결 테스트]를 해 보세요.'); say(`${miss} 기기 신호가 없어요`); return;
+    }
+    run.drift = { L, R };
+    note(`팔 처짐    왼 ${L[0].toFixed(1)}°   오른 ${R[0].toFixed(1)}°      손 회전   왼 ${L[1].toFixed(1)}°   오른 ${R[1].toFixed(1)}°`);
+    say('끝. 팔을 내리세요.');
+    await wait(2000, id);
+
+    setStep(2);
+    for (const h of ['R', 'L']) {
+      const msg2 = `${HK[h]}에 기기를 쥐고, 엄지로 ${TAP_BTN[h]}을 최대한 빨리 누르세요.`;
+      say(`${HK[h]} 검사입니다. 엄지로 ${TAP_BTN[h].slice(0, 4)}을 최대한 빨리 누르세요.`);
+      await countdown(PREP_TAP, `${HK[h]} 엄지로 ${TAP_BTN[h].slice(0, 4)} 연타`, msg2, id);
+      say('시작!');
+      run.phase = 'TAP'; run.hand = h; run.t0 = performance.now(); send('TAP_' + h);
+      for (let t = 0; t < TEST * 10; t++) {
+        if (sim) run.taps[h] = Math.floor((t / 10) * ((sim === 'left' && h === 'L') ? 2.6 : (h === 'R' ? 5.6 : 5.0)));
+        setTap(h, run.taps[h]);
+        show('run', `${HK[h]}  ${run.taps[h]}회`, '계속 빠르게 누르세요!', `측정 ${(TEST - t / 10).toFixed(1)}s`);
+        await wait(100, id);
+      }
+      run.phase = null; send('STOP');
+      await wait(1200, id);
+    }
+    if (Math.max(run.taps.L, run.taps.R) === 0) { stopAll(true); setStep(0); show('warn', '버튼 입력이 없어요', '왼손 L은 B 버튼(화면 오른쪽), 오른손 R은 A 버튼(화면 왼쪽)을 눌러 주세요.'); say('버튼 입력이 없어요'); return; }
+    note(`두드리기  왼 ${run.taps.L}회   오른 ${run.taps.R}회`);
+
+    setStep(3);
+    run.answers.face = await faceStep(id);
+    await wait(1500, id);
+    setStep(4);
+    run.answers.speech = await speechStep(id);
+    await wait(1500, id);
+    setStep(5);
+    finish();
+  } catch (e) {
+    if (e.message !== 'stopped') { console.error(e); stopAll(true); show('warn', '오류가 났어요', e.message); }
+  }
+}
+function simDrift() {
+  if (run.phase !== 'DRIFT') return;
+  const t = (performance.now() - run.t0) / 1000, k = Math.min(t / TEST, 1);
+  for (const h of ['L', 'R']) {
+    let p, r;
+    if (run.sim === 'left' && h === 'L') { p = -20 * k ** 1.3; r = 24 * k; } else { p = -1.5 * k; r = 1.0 * k; }
+    onLine(`D,${h},${(p + gauss(0.6) + (h === 'L' ? 3 : -2)).toFixed(1)},${(r + gauss(0.6)).toFixed(1)}`);
+  }
+}
+function askManual(key, id) {
+  return new Promise((res, rej) => {
+    const face = key === 'face';
+    show('step', face ? '거울을 보고 웃어 보세요' : '문장을 따라 읽어 보세요',
+      face ? "'이~' 하고 웃었을 때 입꼬리가 한쪽만 처지나요?\n본인 또는 가족이 아래 버튼으로 답해 주세요." : '“오늘은 날씨가 맑습니다.”\n발음이 어눌하거나 말이 잘 안 나오나요?',
+      face ? '얼굴 · 직접 판단' : '말 · 직접 판단');
+    say(face ? '얼굴 확인입니다. 거울을 보고 이 하고 웃어 보세요.' : '말 확인입니다. 오늘은 날씨가 맑습니다, 따라 읽어 보세요.');
+    $('qRow').hidden = false;
+    const done = ok => { $('qRow').hidden = true; $('qYes').onclick = $('qNo').onclick = null; clearInterval(chk); res(ok); };
+    $('qYes').onclick = () => done(true); $('qNo').onclick = () => done(false);
+    const chk = setInterval(() => { if (!alive(id)) { clearInterval(chk); $('qRow').hidden = true; rej(new Error('stopped')); } }, 300);
+  });
+}
+
+// ── 얼굴 ──
+let landmarker = null, stream = null, camLoop = null;
+async function ensureLandmarker() {
+  if (landmarker) return landmarker;
+  const vision = await import(`${VISION_URL}/vision_bundle.mjs`);
+  const files = await vision.FilesetResolver.forVisionTasks(`${VISION_URL}/wasm`);
+  const make = delegate => vision.FaceLandmarker.createFromOptions(files, { baseOptions: { modelAssetPath: FACE_MODEL, delegate }, runningMode: 'VIDEO', numFaces: 1 });
+  try { landmarker = await make('GPU'); } catch (e) { landmarker = await make('CPU'); }
+  return landmarker;
+}
+async function listCameras() {
+  const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+  const sel = $('camSelect'), keep = sel.value;
+  sel.innerHTML = '<option value="">자동 (맥북 내장 우선)</option>' + devs.map(d => `<option value="${d.deviceId}">${d.label || '카메라'}</option>`).join('');
+  if (keep && devs.some(d => d.deviceId === keep)) sel.value = keep;
+  return devs;
+}
+function preferBuiltin(devs) {
+  devs = devs.filter(d => d.deviceId !== 'default' && d.deviceId !== 'communications');   // 크롬의 '기본값' 항목 제외
+  return devs.find(d => /macbook|facetime|built-?in|integrated|내장/i.test(d.label)) || devs.find(d => !/iphone|continuity|‘|’|연속성/i.test(d.label)) || devs[0];
+}
+// 마이크: 아이폰(연속성 마이크) 말고 맥북 내장 마이크를 고른다
+async function listMics() {
+  const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput');
+  const sel = $('micSelect'), keep = sel.value;
+  sel.innerHTML = '<option value="">자동 (맥북 내장 우선)</option>' + devs.filter(d => d.deviceId !== 'default' && d.deviceId !== 'communications')
+    .map(d => `<option value="${d.deviceId}">${d.label || '마이크'}</option>`).join('');
+  if (keep && devs.some(d => d.deviceId === keep)) sel.value = keep;
+  return devs;
+}
+async function openMic() {
+  let s = await navigator.mediaDevices.getUserMedia({ audio: true });       // 권한 요청
+  const devs = await listMics();
+  const want = $('micSelect').value ? devs.find(d => d.deviceId === $('micSelect').value) : preferBuiltin(devs);
+  if (want && want.deviceId !== s.getAudioTracks()[0].getSettings().deviceId) {
+    s.getTracks().forEach(t => t.stop());
+    s = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: want.deviceId } } });
+  }
+  return s;
+}
+async function openCamera() {
+  stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  const devs = await listCameras();
+  const want = $('camSelect').value ? devs.find(d => d.deviceId === $('camSelect').value) : preferBuiltin(devs);
+  const cur = stream.getVideoTracks()[0].getSettings().deviceId;
+  if (want && want.deviceId !== cur) {
+    stream.getTracks().forEach(t => t.stop());
+    stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: want.deviceId }, width: 640, height: 480 } });
+  }
+  const v = $('video'); v.srcObject = stream; await v.play();
+  $('camTag').textContent = stream.getVideoTracks()[0].label || '카메라';
+  $('graphBox').hidden = true; $('camBox').hidden = false;
+  $('viewTitle').firstElementChild.textContent = '얼굴 · 입꼬리 좌우 대칭';
+}
+function closeCamera() {
+  if (camLoop) { cancelAnimationFrame(camLoop); camLoop = null; }
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  $('camBox').hidden = true; $('graphBox').hidden = false;
+  $('viewTitle').firstElementChild.textContent = '팔 처짐 · 기준 자세 대비 각도';
+  drawGraph();
+}
+async function faceStep(id) {
+  if (!$('optAuto').checked) return askManual('face', id);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      show('step', '카메라를 준비하고 있어요', '크롬이 카메라 사용을 물으면 [허용]을 눌러 주세요.', '얼굴 · 자동');
+      await ensureLandmarker(); await openCamera();
+    } catch (e) {
+      closeCamera();
+      note(`얼굴: 자동 판단 불가 (${e.name === 'NotAllowedError' ? '카메라 권한 거부' : e.message}) → 직접 판단`);
+      return askManual('face', id);
+    }
+    const r = await measureFace(id);
+    closeCamera();
+    if (r.ok === null) {
+      if (attempt === 0) { show('warn', r.reason, '한 번 더 해 볼게요.'); await say(`${r.reason}. 한 번 더 해 볼게요.`); continue; }
+      note(`얼굴: ${r.reason} → 직접 판단`); return askManual('face', id);
+    }
+    run.faceRatio = r.ratio;
+    note(`얼굴      ${r.reason}`);
+    if (r.ok) { show('ok', '얼굴 대칭 정상', r.reason, '얼굴 · 자동'); say('얼굴은 정상입니다.'); }
+    else { show('warn', '얼굴 한쪽이 처져 보여요', r.reason, '얼굴 · 자동'); say(`${r.weak} 입꼬리가 덜 올라갔어요.`); }
+    return r.ok;
+  }
+}
+function measureFace(id) {
+  return new Promise((res, rej) => {
+    const v = $('video'), cv = $('camCanvas'), c = cv.getContext('2d');
+    const data = { neutral: [], smile: [] };
+    let phase = 'prep', t0 = performance.now(), lastTs = -1;
+    show('step', '카메라를 정면으로 보세요', '가만히 계시면 평소 얼굴을 먼저 잽니다.', '얼굴 · 자동');
+    say('얼굴 확인입니다. 카메라를 정면으로 보고 가만히 계세요.');
+    const tick = () => {
+      if (!alive(id)) { rej(new Error('stopped')); return; }
+      const w = v.videoWidth || 640, h = v.videoHeight || 480;
+      if (cv.width !== w) { cv.width = w; cv.height = h; }
+      c.save(); c.translate(w, 0); c.scale(-1, 1); c.drawImage(v, 0, 0, w, h);
+      const now = performance.now();
+      if (now > lastTs) {
+        lastTs = now;
+        const out = landmarker.detectForVideo(v, now);
+        const lm = out.faceLandmarks && out.faceLandmarks[0];
+        if (lm) {
+          const P = {}; for (const i of [R_EYE, L_EYE, R_MOUTH, L_MOUTH]) P[i] = [lm[i].x * w, lm[i].y * h];
+          if (phase === 'neutral' || phase === 'smile') data[phase].push(mouthHeights(P));
+          c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 1.5; c.setLineDash([6, 5]);
+          c.beginPath(); c.moveTo(...P[R_EYE]); c.lineTo(...P[L_EYE]); c.stroke(); c.setLineDash([]);
+          c.fillStyle = '#ffffff'; for (const i of [R_EYE, L_EYE]) { c.beginPath(); c.arc(P[i][0], P[i][1], 4, 0, 7); c.fill(); }
+          c.fillStyle = '#e8b54a'; for (const i of [R_MOUTH, L_MOUTH]) { c.beginPath(); c.arc(P[i][0], P[i][1], 6.5, 0, 7); c.fill(); }
+        }
+      }
+      c.restore();
+      const t = (now - t0) / 1000;
+      if (phase === 'prep' && t > 3.5) { phase = 'neutral'; t0 = now; show('run', '그대로 가만히', '평소 얼굴을 재고 있어요 (2초)', '얼굴 · 측정'); }
+      else if (phase === 'neutral' && t > 2.5) { phase = 'smile'; t0 = now; show('run', "'이~' 하고 크게 웃으세요", '입꼬리를 양쪽으로 쭉 올려 주세요 (3초)', '얼굴 · 측정'); say('이 하고 크게 웃으세요.'); }
+      else if (phase === 'smile' && t > 3.5) { camLoop = null; res(judgeFace(data.neutral, data.smile)); return; }
+      camLoop = requestAnimationFrame(tick);
+    };
+    camLoop = requestAnimationFrame(tick);
+  });
+}
+
+// ── 말 ──
+let micNoted = false;
+function listen(ms, track) {
+  return new Promise((res, rej) => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const r = new SR(); r.lang = 'ko-KR'; r.interimResults = false; r.maxAlternatives = 1; r.continuous = true;
+    let got = [], failed = false;
+    r.onresult = e => { got = Array.from(e.results).map(x => x[0].transcript); };
+    r.onerror = e => { if (e.error !== 'no-speech' && e.error !== 'aborted') { failed = true; rej(new Error(e.error)); } };
+    r.onend = () => { if (!failed) res(got.join(' ').trim()); };
+    let usedTrack = false;
+    if (track) { try { r.start(track); usedTrack = true; } catch (e) { usedTrack = false; } }   // 최신 크롬: 고른 마이크로 인식
+    if (!usedTrack) r.start();                                                                 // 지원 안 하면 크롬 기본 마이크
+    if (!micNoted) {
+      micNoted = true;
+      note(usedTrack ? `마이크      ${track.label}` : '마이크      크롬 기본 마이크 사용 (아이폰이면 크롬 설정에서 맥북 마이크로 변경)');
+    }
+    setTimeout(() => { try { r.stop(); } catch (e) {} }, ms);
+  });
+}
+async function speechStep(id) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!$('optAuto').checked || !SR) { if ($('optAuto').checked) note('말: 이 브라우저는 음성 인식을 지원하지 않아 직접 판단'); return askManual('speech', id); }
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const sentence = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
+    show('step', `“${sentence}.”`, '‘삐’ 소리가 나면 이 문장을 따라 읽어 주세요.', '말 · 자동');
+    await say(`말 확인입니다. 삐 소리가 나면 따라 읽어 주세요. ${sentence}.`);
+    if (!alive(id)) throw new Error('stopped');
+    await sleep(300); beep();
+    show('run', `“${sentence}.”`, '지금 읽어 주세요. 6초 동안 듣고 있어요.', '말 · 듣는 중');
+    let heard = '', mic = null;
+    try {
+      try { mic = await openMic(); } catch (e) { mic = null; }       // 맥북 마이크를 열어서 인식에 넘김
+      heard = await listen(6000, mic ? mic.getAudioTracks()[0] : null);
+    }
+    catch (e) { note(`말: 음성 인식 불가 (${e.message === 'not-allowed' ? '마이크 권한 거부' : e.message}) → 직접 판단`); return askManual('speech', id); }
+    finally { if (mic) mic.getTracks().forEach(t => t.stop()); }
+    if (!alive(id)) throw new Error('stopped');
+    const score = speechScore(sentence, heard);
+    if (score < CFG.SPEECH_MIN && attempt === 0) {
+      const msg = heard ? '한 번 더 또박또박 읽어 주세요' : '잘 안 들렸어요';
+      show('warn', msg, `들린 말: “${heard || '(없음)'}”`, '말 · 다시'); await say(`${msg}. 다른 문장으로 한 번 더 해 볼게요.`); continue;
+    }
+    const ok = score >= CFG.SPEECH_MIN;
+    run.speechScore = score; run.heard = heard;
+    note(`말        발음 정확도 ${Math.round(score * 100)}%   들린 말 “${heard || '(없음)'}”`);
+    if (ok) { show('ok', `발음 정확도 ${Math.round(score * 100)}%`, `들린 말: “${heard}”`, '말 · 자동'); say('말도 정상입니다.'); }
+    else { show('warn', `발음 정확도 ${Math.round(score * 100)}%`, `들린 말: “${heard || '(없음)'}”\n말이 어눌하게 들려요.`, '말 · 자동'); say('발음이 어눌하게 들려요.'); }
+    return ok;
+  }
+}
+
+// ── 결과 ──
+function finish() {
+  run.active = false; $('btnStart').disabled = false;
+  const m = { dropL: run.drift.L[0], dropR: run.drift.R[0], rotL: run.drift.L[1], rotR: run.drift.R[1],
+              tapL: run.taps.L, tapR: run.taps.R, faceOk: run.answers.face !== false, speechOk: run.answers.speech !== false };
+  const res = judge(m, normals());
+  const now = Date.now();
+  if (res.level === '재검' && lastYellow && now - lastYellow < 15 * 60 * 1000) { res.level = '위험'; res.reasons.push('재검에서도 이상 신호'); }
+  lastYellow = res.level === '재검' ? now : null;
+  const prevNormal = lastNormalRec();
+  hist().push({ ts: now, m, level: res.level, reasons: res.reasons, faceRatio: run.faceRatio, speechScore: run.speechScore, heard: run.heard, sim: run.sim });
+  save(); renderResult(m, res); renderHistory();
+  if (res.level === '정상') {
+    show('ok', '정상입니다', `마지막 정상 확인 시각이 ${hm(new Date())}로 기록되었어요.\n오늘도 건강하세요.`, '판정 · 정상');
+    say('정상입니다. 마지막 정상 시각이 기록되었어요.'); send('OK');
+  } else if (res.level === '재검') {
+    show('warn', '한 번 더 확인이 필요해요', `${res.reasons.join(' · ')}\n1분 쉬고 다시 체크하세요. 또 이상이 나오면 위험으로 판정합니다.`, '판정 · 재검');
+    say('이상 신호가 하나 있어요. 1분 쉬고 다시 체크해 주세요.'); send('WARN');
+  } else {
+    send('ALARM'); say('뇌졸중이 의심됩니다. 지금 바로 119, 베트남에서는 115에 전화하세요.');
+    const tick = () => {
+      let t;
+      if (prevNormal) {
+        const el = Date.now() - prevNormal.ts, rem = CFG.GOLDEN_H * 3600e3 - el;
+        t = `마지막 정상 확인 ${hm(new Date(prevNormal.ts))} · ${fmtDur(el)} 전\n남은 골든타임(추정) ${rem > 0 ? hms(rem) : '지남 — 그래도 지금 바로 병원으로'}`;
+      } else t = '마지막 정상 기록이 없어요. 증상을 처음 본 시각을 의료진에게 꼭 알리세요.';
+      show('bad', '지금 119 · 115에 전화하세요', `${res.reasons.join(' · ')}\n${t}`, '경보 · 뇌졸중 의심');
+      renderDial();
+    };
+    tick(); alarmTimer = setInterval(tick, 1000);
+  }
+  renderDial();
+}
+function renderResult(m, res) {
+  const f = new Set(res.flags), v = (bad, t = bad ? '이상' : '정상') => `<span class="v ${bad ? 'bad' : 'ok'}">${t}</span>`;
+  const b = res.base;
+  $('resBody').innerHTML = `
+    <tr><td>팔 처짐</td><td class="n">${m.dropL.toFixed(1)}°</td><td class="n">${m.dropR.toFixed(1)}°</td><td class="std">${b ? '평소 대비' : '≤ 10°'}</td><td>${v(f.has('drop'))}</td></tr>
+    <tr><td>좌우 차이</td><td class="n" colspan="2">${res.d.diff.toFixed(1)}°</td><td class="std">${b ? '평소 대비' : '≤ 8°'}</td><td>${v(f.has('diff'))}</td></tr>
+    <tr><td>손바닥 회전</td><td class="n">${m.rotL.toFixed(1)}°</td><td class="n">${m.rotR.toFixed(1)}°</td><td class="std">${b ? '평소 대비' : '≤ 15°'}</td><td>${v(f.has('rot'))}</td></tr>
+    <tr><td>두드리기</td><td class="n">${m.tapL}</td><td class="n">${m.tapR}</td><td class="std">${b ? '평소 대비' : '비율 ≥ 70%'}</td><td>${v(f.has('ratio'), f.has('ratio') ? `이상 ${Math.round(res.d.ratio * 100)}%` : `정상 ${Math.round(res.d.ratio * 100)}%`)}</td></tr>
+    <tr><td>얼굴 대칭</td><td class="n" colspan="2">${run.faceRatio != null ? Math.round(run.faceRatio * 100) + '%' : '직접 응답'}</td><td class="std">≥ 55%</td><td>${v(!m.faceOk)}</td></tr>
+    <tr><td>발음</td><td class="n" colspan="2">${run.speechScore != null ? Math.round(run.speechScore * 100) + '%' : '직접 응답'}</td><td class="std">≥ 75%</td><td>${v(!m.speechOk)}</td></tr>
+    <tr><td><b>최종</b></td><td colspan="3" class="std">${res.reasons.join(' · ') || '이상 신호 없음'}</td><td><span class="v ${res.level === '정상' ? 'ok' : res.level === '재검' ? 'warn' : 'bad'}">${res.level}</span></td></tr>`;
+  $('resMode').textContent = res.mode;
+}
+function renderHistory() {
+  const rec = lastNormalRec();
+  $('lkw').textContent = rec ? (() => { const d = new Date(rec.ts); return `${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${hm(d)}`; })() : '기록 없음';
+  const cls = { '정상': 'ok', '재검': 'warn', '위험': 'bad' };
+  $('history').innerHTML = [...hist()].reverse().slice(0, 20).map(h => {
+    const d = new Date(h.ts);
+    return `<li><time>${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${hm(d)}</time><span class="v ${cls[h.level]}">${h.level}</span>` +
+           `<span class="sum">팔 ${h.m.dropL.toFixed(0)}°/${h.m.dropR.toFixed(0)}° · 탭 ${h.m.tapL}/${h.m.tapR}${h.faceRatio != null ? ' · 얼굴 ' + Math.round(h.faceRatio * 100) + '%' : ''}${h.speechScore != null ? ' · 말 ' + Math.round(h.speechScore * 100) + '%' : ''}${h.sim ? ' · 시뮬' : ''}</span></li>`;
+  }).join('') || '<li class="empty" style="display:block">아직 기록이 없어요. 정상 체크를 3번 하면 개인 기준선이 만들어집니다.</li>';
+  renderDial();
+}
+function exportCsv() {
+  const rows = [['사용자', '시각', '결과', '왼팔처짐', '오른팔처짐', '왼손회전', '오른손회전', '왼손두드리기', '오른손두드리기', '얼굴정상', '말정상', '얼굴좌우비율', '발음정확도', '들린말', '시뮬레이션', '이유']];
+  for (const [u, list] of Object.entries(store)) for (const h of list) {
+    const d = new Date(h.ts);
+    rows.push([u, `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${hm(d)}:${pad(d.getSeconds())}`, h.level,
+      h.m.dropL.toFixed(1), h.m.dropR.toFixed(1), h.m.rotL.toFixed(1), h.m.rotR.toFixed(1), h.m.tapL, h.m.tapR,
+      h.m.faceOk ? 1 : 0, h.m.speechOk ? 1 : 0, h.faceRatio != null ? h.faceRatio.toFixed(2) : '', h.speechScore != null ? h.speechScore.toFixed(2) : '',
+      h.heard || '', h.sim ? 1 : 0, (h.reasons || []).join(' / ')]);
+  }
+  const csv = '﻿' + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = `골든타임_기록_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+}
+
+// ───────── 연결 ─────────
+$('btnConnect').onclick = connectSerial;
+$('btnTest').onclick = () => { if (!run.active) testLink(); };
+$('btnStart').onclick = () => startCheck(null);
+$('heroStart').onclick = () => { $('check').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => startCheck(null), 500); };
+$('quickStart').onclick = () => $('check').scrollIntoView({ behavior: 'smooth' });
+$('btnStop').onclick = () => stopAll(false);
+$('simNormal').onclick = () => startCheck('normal');
+$('simLeft').onclick = () => startCheck('left');
+$('btnCsv').onclick = exportCsv;
+$('btnClear').onclick = () => { store[uname()] = []; lastYellow = null; save(); renderHistory(); };
+$('user').onchange = renderHistory;
+if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) { listCameras().catch(() => {}); listMics().catch(() => {}); }
+renderHistory(); drawGraph(); renderDial(); setStep(0);
+window.__gt = { judge, derive, angleChange, speechScore, judgeFace, startCheck, run: () => run };
+</script>
+</body>
+</html>
